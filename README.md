@@ -49,7 +49,13 @@ vitepress-note-starter/
 
 ### 方式一：Use this template（推荐）
 
-1. 打开模板仓库页面，点右上角 **Use this template → Create a new repository**；
+> **按钮在哪**：打开仓库主页 → 文件列表**上方那一行**、`<> Code` 按钮旁边的绿色 **Use this template** 按钮
+> （**不在**右上角 Watch / Fork / Star 那一排；Fork 才在那里）。
+> 也可以直接访问 `https://github.com/<owner>/<repo>/generate` 打开「从模板创建新仓库」页面。
+>
+> 看不到这个按钮，说明该仓库还没开启模板功能 —— 仓库**维护者**需要在 **Settings → General → Template repository** 勾选一次。
+
+1. 点 **Use this template → Create a new repository**；
 2. 起个仓库名，例如 `my-notes`（这个名字决定后面的 `base` 路径）；
 3. 克隆到本地：
 

@@ -54,6 +54,13 @@ git push origin main
 - Fork 的仓库：Actions 默认**停用**，必须手动启用。
 :::
 
+::: tip 「Use this template」按钮在哪
+仓库主页 → 文件列表**上方那一行**、`<> Code` 按钮旁边的绿色 **Use this template** 按钮（**不在**右上角 Watch / Fork / Star 那一排）。
+也可以直接打开 `https://github.com/<owner>/<repo>/generate`。
+
+看不到按钮 = 该仓库没开模板功能，仓库**维护者**要在 **Settings → General → Template repository** 勾选一次（勾选后按钮才出现）。
+:::
+
 ## 本地构建预览（可选）
 
 想在上线前确认产物没问题：
