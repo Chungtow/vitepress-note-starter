@@ -1,0 +1,55 @@
+# =============================================================================
+# 本地开发容器（只跑 VitePress dev server，镜像里没有 VitePress 本体）
+# -----------------------------------------------------------------------------
+# 使用方式（在本 docker 目录下执行）：
+#   cp .env.example .env      # 首次使用，按需改端口
+#   docker compose up -d      # 启动，首次会自动 build 镜像 + 装依赖
+#   docker compose logs -f    # 看日志（等到出现 Local: http://localhost:5173/ 即成功）
+#   docker compose down       # 停止
+#
+# 也可以从仓库根目录执行：
+#   docker compose -f docker/docker-compose.yml up -d
+# =============================================================================
+services:
+  docs:
+    build:
+      # context 指向仓库根目录，配合根目录的 .dockerignore 减小构建上下文体积
+      # （Dockerfile 自身仍在 docker 目录，符合"容器相关文件收拢在 docker/"的约定）
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        PNPM_VERSION: ${PNPM_VERSION:-10.34.9}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com}
+
+    image: ${IMAGE_NAME:-vitepress-note-starter-dev}:latest
+    container_name: ${CONTAINER_NAME:-vitepress-note-dev}
+
+    working_dir: /app
+
+    # 首次启动先装依赖（node_modules 落在独立命名卷里，不污染宿主目录），
+    # 然后启动 dev server。--host 0.0.0.0 已写在 package.json 的 docs:dev 中。
+    command: sh -c "pnpm install && pnpm docs:dev"
+
+    ports:
+      # 左边是宿主机端口（可用 .env 里的 DEV_PORT 改），右边是容器内固定 5173
+      - "${DEV_PORT:-5173}:5173"
+
+    volumes:
+      # 关键：仓库根目录挂到容器 /app，容器里的改动等价于宿主改动，热更新可用
+      - ../:/app
+      # node_modules 用命名卷隔离：避免宿主/容器二进制不一致，也让宿主目录保持干净
+      - node_modules:/app/node_modules
+
+    environment:
+      TZ: Asia/Shanghai
+      # 某些文件系统（Windows / WSL / 网络盘）下 inotify 事件不触发，靠轮询兜底热更新
+      CHOKIDAR_USEPOLLING: "true"
+
+    # 让日志带颜色、便于 Ctrl+C
+    stdin_open: true
+    tty: true
+
+    restart: unless-stopped
+
+volumes:
+  node_modules:

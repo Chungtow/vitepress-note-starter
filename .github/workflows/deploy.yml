@@ -1,0 +1,72 @@
+# =============================================================================
+# 推送 main 分支 → 自动构建 → 发布到 GitHub Pages
+# -----------------------------------------------------------------------------
+# 模板使用者无需修改本文件，只需要在 GitHub 仓库里做两件事：
+#   1. Settings → Actions → General → Workflow permissions 允许工作流运行
+#      （Fork 的仓库在 Actions 页点一次 "I understand my workflows, go ahead and enable them"）
+#   2. Settings → Pages → Build and deployment → Source 选择 "GitHub Actions"
+# =============================================================================
+name: Deploy VitePress to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # 支持在 Actions 页面手动触发一次部署
+  workflow_dispatch:
+
+# GitHub Pages 部署所需的权限，缺一个都会失败
+permissions:
+  contents: read   # 读取仓库代码
+  pages: write     # 写入 Pages
+  id-token: write  # OIDC 校验，deploy-pages 必需
+
+# 同一时间只允许一个部署任务，避免并发发布互相覆盖
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          # 取完整 git 历史：开启 config 里的 lastUpdated（最后更新时间）时需要
+          fetch-depth: 0
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        # 不写 version，自动读取 package.json 的 packageManager 字段，避免版本冲突
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 构建站点
+        run: pnpm docs:build
+
+      - name: 配置 Pages
+        uses: actions/configure-pages@v5
+
+      - name: 上传构建产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/.vitepress/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 发布到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
