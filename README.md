@@ -41,6 +41,8 @@ vitepress-note-starter/
 │   └── notes/                   # 笔记区（示例，可删可改）
 │       ├── index.md
 │       └── demo.md
+├── scripts/
+│   └── init-private-site.sh     # 一键生成私有项目（剥离 GitHub、生成部署文件）
 ├── .dockerignore
 ├── .gitignore
 ├── package.json                 # 脚本 docs:dev / docs:build / docs:preview
@@ -51,11 +53,28 @@ vitepress-note-starter/
 
 ## 使用步骤
 
+> **占位符约定**：下文命令里尖括号包住的部分都要换成你自己的值，不要照抄尖括号本身。
+>
+> | 占位符 | 含义 | 例子 |
+> | --- | --- | --- |
+> | `<目录>` | 本地项目目录（可含路径） | `notes`、`~/work/notes` |
+> | `<仓库名>` | 新建的代码仓库名 | `notes` |
+> | `<组>` | Codeup / GitLab 的组或命名空间 | `mygroup` |
+> | `<站点名>` | 站点标题，显示在浏览器标签和左上角 | `业务文档` |
+> | `<子路径>` | 站点挂在域名下的子路径 | `notes` |
+> | `<一句话简介>` | 站点描述 | `内部业务文档` |
+> | `<你的用户名>` | GitHub 用户名 | `octocat` |
+> | `<服务器>` | 服务器地址或内网 IP | `10.0.0.12` |
+> | `<服务器用户>` | 登录服务器的账号 | `root` |
+> | `<分支名>` | git 分支名 | `main` |
+>
+> 各方式示例里出现的 `my-notes`、`notes.example.com` 同样只是示范，按自己的名字替换即可。
+
 ### 方式一：Use this template（推荐：公开仓库 + GitHub Pages）
 
 > **按钮在哪**：打开仓库主页 → 文件列表**上方那一行**、`<> Code` 按钮旁边的绿色 **Use this template** 按钮
 > （**不在**右上角 Watch / Fork / Star 那一排；Fork 才在那里）。
-> 也可以直接访问 `https://github.com/<owner>/<repo>/generate` 打开「从模板创建新仓库」页面。
+> 也可以直接访问 `https://github.com/<你的用户名>/<仓库名>/generate` 打开「从模板创建新仓库」页面。
 >
 > 看不到这个按钮，说明该仓库还没开启模板功能 —— 仓库**维护者**需要在 **Settings → General → Template repository** 勾选一次。
 
@@ -66,8 +85,8 @@ vitepress-note-starter/
 3. 克隆到本地（`<你的用户名>` 换成自己的 GitHub 用户名）：
 
 ```bash
-git clone git@github.com:<你的用户名>/my-notes.git
-cd my-notes
+git clone git@github.com:<你的用户名>/my-notes.git    # ← my-notes 换成你的仓库名
+cd my-notes                                          # ← 同一名字
 ```
 
 #### 第 2 步：改站点身份（只改 `docs/.vitepress/site.ts` 一个文件）
@@ -75,7 +94,7 @@ cd my-notes
 ```ts
 export const site = {
   base: '/my-notes/',                    // ← 必须等于仓库名，首尾斜杠都要
-                                         //    仓库名叫 <用户名>.github.io 时写 '/'
+                                         //    仓库名叫 <你的用户名>.github.io 时写 '/'
   title: '我的笔记',                      // ← 站点名（浏览器标签、左上角）
   titleTemplate: ':title | 我的笔记',      // ← 跟着上面一起改
   description: '我的个人笔记',             // ← 一句话简介
@@ -86,7 +105,7 @@ export const site = {
 }
 ```
 
-> `base` 要等于 `https://<用户名>.github.io/` **后面那段路径**。配错的典型症状是页面能打开但样式全丢（白底黑字裸 HTML）。
+> `base` 要等于 `https://<你的用户名>.github.io/` **后面那段路径**。配错的典型症状是页面能打开但样式全丢（白底黑字裸 HTML）。
 
 #### 第 3 步：本地预览（只需要 Docker）
 
@@ -148,7 +167,7 @@ cd vitepress-note-starter
 改 `docs/.vitepress/site.ts`（规则同方式一第 2 步）：
 
 ```ts
-base: '/vitepress-note-starter/',   // ← 等于 Fork 后的仓库名；仓库名叫 <用户名>.github.io 时写 '/'
+base: '/vitepress-note-starter/',   // ← 等于 Fork 后的仓库名；仓库名叫 <你的用户名>.github.io 时写 '/'
 ```
 
 #### 第 4 步：本地预览
@@ -174,8 +193,9 @@ curl -I https://<你的用户名>.github.io/vitepress-note-starter/    # ← 换
 
 ### 方式三：用在自己的私有项目里（Codeup / GitLab / 内网服务器）
 
-适用场景：代码托管在云效 Codeup / GitLab / 自建 Gitea，站点部署在自己服务器（nginx 或 Docker），
-全程不经过 GitHub。一条命令完成「复制模板 + 剥离 `.github/` + 填好配置 + 生成部署文件 + 换远程仓库」。
+适用场景：代码托管在云效 Codeup / GitLab / 自建 Gitea，站点部署在自己的服务器上。
+**默认走 Docker**：构建与托管全在容器里，服务器上只要一条命令就能起站；已有 nginx 想直接发静态目录也行（见第 6 步 B）。
+全程不经过 GitHub。
 
 脚本具体做的事：复制模板（排除 `.git` / `node_modules` / 构建产物）→ 删除 `.github/` 与讲 Pages 的示例页 →
 生成 `docs/.vitepress/site.ts` → 生成空白文档骨架（首页 + 总览 + 写作规范）与精简版 `README.md` →
@@ -192,31 +212,31 @@ curl -I https://<你的用户名>.github.io/vitepress-note-starter/    # ← 换
 #### 第 1 步：克隆模板到目标目录
 
 ```bash
-mkdir -p ~/work/hcp-notes && cd ~/work/hcp-notes   # ← 换成你的路径，该目录必须是空的
+# <目录> 换成你的项目路径，例如 ~/work/notes；该目录必须不存在或为空
+mkdir -p <目录> && cd <目录>
 git clone git@github.com:Chungtow/vitepress-note-starter.git .
 ```
 
-#### 第 2 步：一条命令改造（把下面 7 个值换成你自己的）
+#### 第 2 步：一条命令改造（把下面 6 个值换成你自己的）
 
 ```bash
 bash scripts/init-private-site.sh --in-place \
-  --name "HCP 业务文档" \
-  --desc "HCP 项目内部文档" \
+  --name "<站点名>" \
+  --desc "<一句话简介>" \
   --base / \
-  --deploy nginx \
-  --web-root /data/www/hcp-notes \
-  --repo git@codeup.aliyun.com:mygroup/hcp-notes.git
+  --deploy docker \
+  --repo git@codeup.aliyun.com:<组>/<仓库名>.git
 ```
 
 | 参数 | 你要填什么 |
 | --- | --- |
 | `--name` | 站点名，显示在浏览器标签和左上角 |
 | `--desc` | 一句话简介 |
-| `--base` | 访问路径。部署在**域名/端口根目录**（`http://notes.xxx.com/`）写 `/`；挂在**现有站点子路径**（`http://xxx.com/hcp-notes/`）写 `/hcp-notes/` |
-| `--deploy` | `nginx`（服务器跑 nginx）｜`docker`（容器发布）｜`none`（只生成站点，自己拷 dist） |
-| `--web-root` | 仅 `nginx` 用：发版时同步到服务器的哪个目录，必须与 `deploy/nginx.conf` 的 `root` 一致 |
+| `--base` | 访问路径。部署在**域名/端口根目录**（`http://notes.xxx.com/`、`http://10.0.0.12:8080/`）写 `/`；挂在**现有站点子路径**（`http://xxx.com/<子路径>/`）写 `/<子路径>/` |
+| `--deploy` | **`docker`（推荐，第 6 步 A）**｜`nginx`（已有 nginx 直接发静态目录，第 6 步 B）｜`none`（只生成站点，自己拷 dist） |
 | `--repo` | 你的私有仓库 SSH 地址（Codeup 仓库首页「克隆」里复制） |
 | `--reset-git` | **可选**。加上 = 清空模板历史、彻底断掉 GitHub；不加 = 保留模板历史，以后还能 `git pull` 同步模板更新 |
+| `--web-root` | 仅 `--deploy nginx` 用，可稍后再补：发版同步到服务器哪个目录（如 `/data/www/notes`），必须与 `deploy/nginx.conf` 的 `root` 一致 |
 
 > ⚠️ 这段命令**不要在行尾加 `#` 注释**：续行符会被注释打断，命令直接报错。
 > 想保留 Markdown/Mermaid 示例页加 `--keep-samples`；想继续用 GitHub Pages 加 `--keep-github`。
@@ -226,7 +246,7 @@ bash scripts/init-private-site.sh --in-place \
 
 ```bash
 git remote -v      # 只应出现 codeup 那一行；还看到 github 说明没清干净
-ls scripts deploy  # 应有 init-private-site.sh 与 nginx.conf
+ls scripts deploy  # 应有 init-private-site.sh，deploy/ 下有 Dockerfile、nginx.conf、docker-compose.yml
 grep -E "base|title" docs/.vitepress/site.ts        # base 与 title 应是你刚填的值
 grep -rn "github" --include="*.ts" --include="*.md" . | grep -v node_modules   # 期望无输出
 ```
@@ -235,21 +255,44 @@ grep -rn "github" --include="*.ts" --include="*.md" . | grep -v node_modules   #
 
 ```bash
 docker compose -f docker/docker-compose.yml up -d
-docker compose -f docker/docker-compose.yml logs -f    # 出现 Local: http://localhost:5173<你的 base> 即成功
+docker compose -f docker/docker-compose.yml logs -f    # 出现 Local: http://localhost:5173... 即成功
 ```
 
 #### 第 5 步：首次提交并推送
 
 ```bash
 git add -A
-git commit -m "chore: 初始化 hcp-notes 文档站"
+git commit -m "chore: 初始化 <目录> 文档站"
 git push -u origin main      # 第一次必须带 -u，之后 git push 即可
 ```
 
 > 推送被拒（`[rejected] non-fast-forward`）说明 Codeup 仓库里已经有内容（建仓时勾了初始化 README）。
 > 清空那个仓库后重推；确认里面没有有用内容时也可以 `git push -u origin main --force`。
 
-#### 第 6 步：部署到服务器（方式 A：nginx）
+#### 第 6 步：部署（方式 A：Docker，推荐）
+
+项目里已经有了 `deploy/Dockerfile`（多阶段构建：Node 里 `pnpm docs:build` → nginx 托管静态文件）
+和 `deploy/docker-compose.yml`，把项目拷到服务器后一条命令起站：
+
+```bash
+cd <目录>                                      # ← 服务器上的项目目录
+docker compose -f deploy/docker-compose.yml up -d --build
+
+docker compose -f deploy/docker-compose.yml ps        # 状态
+docker compose -f deploy/docker-compose.yml logs -f   # 日志
+```
+
+默认映射宿主机 `8080` 端口，访问 `http://<服务器>:8080`。要换端口就改 `deploy/docker-compose.yml` 里的 `"8080:80"`。
+
+以后更新文档：在服务器上 `git pull` 后重跑同一条 `up -d --build` 即可（镜像里重新构建，无需手工装 Node / pnpm）。
+
+> 也可以在本机或流水线里 `docker build -f deploy/Dockerfile -t <镜像名>:<tag> .`，推到私有 registry，
+> 服务器上 `docker pull` 后重启；适合「构建机与运行机分开」的场景。
+
+#### 第 6 步：部署（方式 B：nginx，可选）
+
+仅当服务器上已经有 nginx、不想再跑容器时用（第 2 步要加 `--deploy nginx --web-root <服务器目录>`，
+或事后在项目根目录用 `--in-place` 重跑一次补生成）。
 
 1. 改 `deploy/nginx.conf` 里两行：
 
@@ -257,16 +300,16 @@ git push -u origin main      # 第一次必须带 -u，之后 git push 即可
 server {
     listen 80;
     server_name notes.example.com;      # ← 改成你的域名或内网 IP
-    root /data/www/hcp-notes;           # ← 与 --web-root 一致
+    root /data/www/<目录>;              # ← 与 --web-root 一致
     ...
 }
 ```
 
-2. 拷到服务器并生效（`<用户>` / `<服务器>` 换实际值）：
+2. 拷到服务器并生效（`<服务器用户>` / `<服务器>` 换实际值）：
 
 ```bash
-scp deploy/nginx.conf <用户>@<服务器>:/tmp/hcp-notes.conf
-ssh <用户>@<服务器> 'sudo mv /tmp/hcp-notes.conf /etc/nginx/conf.d/hcp-notes.conf && sudo nginx -t && sudo nginx -s reload'
+scp deploy/nginx.conf <服务器用户>@<服务器>:/tmp/docs.conf
+ssh <服务器用户>@<服务器> 'sudo mv /tmp/docs.conf /etc/nginx/conf.d/docs.conf && sudo nginx -t && sudo nginx -s reload'
 ```
 
 3. 以后每次发版（构建 + 同步一步到位）：
@@ -275,26 +318,18 @@ ssh <用户>@<服务器> 'sudo mv /tmp/hcp-notes.conf /etc/nginx/conf.d/hcp-note
 bash scripts/deploy.sh      # pnpm install --frozen-lockfile && pnpm docs:build && rsync 到 WEB_ROOT
 ```
 
-> 想临时换目标目录：`WEB_ROOT=/srv/www/hcp-notes bash scripts/deploy.sh`。
-> 服务器上需要有 `rsync`；没有就装（`sudo apt install -y rsync`）或改用下面的 Docker 方式。
-
-#### 第 6 步：部署到服务器（方式 B：Docker）
-
-第 2 步用的是 `--deploy nginx` 就跳过本节（A、B 二选一；想换 Docker 就重跑脚本并改成 `--deploy docker`）。
-
-```bash
-# 用 --deploy docker 生成的项目才有这些文件；在项目根目录执行
-docker compose -f deploy/docker-compose.yml up -d --build
-```
-
-默认映射宿主机 `8080` 端口；要换端口改 `deploy/docker-compose.yml` 里的 `"8080:80"`，
-然后访问 `http://<服务器IP>:8080`。
+> 想临时换目标目录：`WEB_ROOT=/srv/www/<目录> bash scripts/deploy.sh`。
+> 服务器上需要有 `rsync`；没有就装（`sudo apt install -y rsync`），或者干脆用第 6 步 A 的 Docker 方式。
 
 #### 第 7 步：验证
 
 ```bash
-curl -I http://notes.example.com/                          # ← 换实际地址，期望 200
-curl -s http://notes.example.com/ | grep -c 'assets/app'   # 期望 1（有资源引用，不是裸 HTML）
+# 方式 A（Docker，默认 8080）
+curl -I http://<服务器>:8080/                            # 期望 200
+curl -s http://<服务器>:8080/ | grep -c 'assets/app'     # 期望 1（有资源引用，不是裸 HTML）
+
+# 方式 B（nginx）
+curl -I http://notes.example.com/                        # ← 换实际地址，期望 200
 ```
 
 #### 附：不想 clone 进当前目录？
@@ -302,9 +337,9 @@ curl -s http://notes.example.com/ | grep -c 'assets/app'   # 期望 1（有资�
 用 `--dir` 模式在指定路径生成一份新项目，模板目录保持干净（下面在模板目录里执行）：
 
 ```bash
-bash scripts/init-private-site.sh --dir ../hcp-notes \
-  --name "HCP 业务文档" --base / --deploy nginx \
-  --repo git@codeup.aliyun.com:mygroup/hcp-notes.git
+bash scripts/init-private-site.sh --dir ../<目录> \
+  --name "<站点名>" --base / --deploy docker \
+  --repo git@codeup.aliyun.com:<组>/<仓库名>.git
 ```
 
 #### 附：常见问题
@@ -317,6 +352,94 @@ bash scripts/init-private-site.sh --dir ../hcp-notes \
 | `rsync: command not found` | 服务器装 rsync，或改用 `--deploy docker` |
 | 以后想同步模板更新 | 加 `--reset-git` 就同步不了了。改用 `git remote rename origin upstream` 保留模板历史 |
 | 忘了加 `--deploy` | 重新跑一次并补上参数；注意会覆盖 `site.ts` 与文档骨架，先备份自己写的内容 |
+
+### 方式四：只要脚手架，不关联任何仓库（清掉 git 痕迹）
+
+适用场景：先把站点搭起来、在自己机器上写文档，托放到哪里以后再说；或者项目干脆不进版本库（本地/离线）。
+产物特征：**没有任何 remote、没有历史提交、没有 `.github/`**，但 `site.ts`、文档骨架、部署脚本都已就位。
+
+#### 第 1 步（做法 A，推荐）：clone 后就地改造，一把清干净
+
+```bash
+# <目录> 换成你的项目路径，例如 ~/work/notes；必须不存在或为空
+mkdir -p <目录> && cd <目录>
+git clone git@github.com:Chungtow/vitepress-note-starter.git .
+
+bash scripts/init-private-site.sh --in-place \
+  --name "<站点名>" \
+  --base / \
+  --reset-git            # ← 关键：不加这一项，origin 仍然是 GitHub 那个地址
+```
+
+只克隆一次、原地改完，步骤最少。`--reset-git` 会把 `.git` 整个删掉并重新 `git init -b main`，
+GitHub 的 remote 和提交历史一起消失，而工作区文件一个不少（含 `scripts/`、`site.ts`、文档骨架）。
+
+#### 第 1 步（做法 B）：`--dir` 模式，从外部生成一份
+
+不想让 `.git` 哪怕短暂存在（比如目标目录以后要并进别的仓库），就从外部生成：
+
+```bash
+# 1) 把模板克隆到临时目录（只为拿到生成脚本，用完即删）
+git clone --depth 1 git@github.com:Chungtow/vitepress-note-starter.git /tmp/tpl
+cd /tmp/tpl
+
+# 2) 生成脚手架：不传 --repo，就完全不会配远端
+#    --dir    ← 目标路径（不存在会自动创建），下例写在临时模板同级
+#    --name   ← 站点名
+#    --base   ← 部署路径，根目录写 /；子路径写 /<子路径>/
+#    --deploy ← 可选：docker / nginx；不加则只生成站点
+bash scripts/init-private-site.sh --dir ../<目录> \
+  --name "<站点名>" \
+  --base /
+
+# 3) 删掉临时模板，进入生成好的项目（路径与第 2 步 --dir 的值对应）
+rm -rf /tmp/tpl
+cd ../<目录>
+```
+
+比做法 A 多两步，换来「模板与产物彻底分离」：模板只在 `/tmp/tpl` 存在、用完即删；
+新项目里只有 `git init` 出来的空仓库，文件已 `git add`，**没有远端、没有提交**。
+
+#### 第 2 步：验证确实干净了
+
+```bash
+git remote -v                          # 期望：没有任何输出
+git log --oneline 2>/dev/null          # 期望：fatal ... does not have any commits yet
+ls -d .github 2>/dev/null || echo "无 .github"    # 期望：无 .github
+grep -E "base|title" docs/.vitepress/site.ts      # 期望：你刚填的值
+```
+
+#### 第 3 步：本地先写起来
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+docker compose -f docker/docker-compose.yml logs -f    # 出现 Local: http://localhost:5173/ 即可
+```
+
+#### 以后想接仓库 / 想部署了
+
+```bash
+# 接仓库（Codeup / GitLab / 自建都行）
+# <你的仓库地址> 例：git@codeup.aliyun.com:<组>/<仓库名>.git
+git remote add origin <你的仓库地址>
+git add -A
+git commit -m "chore: 初始化文档站"
+git push -u origin main
+
+# 补部署文件：在项目根目录用 --in-place 重跑一次
+# ⚠️ 会重新生成 site.ts 与文档骨架，自己写的内容先提交或备份
+bash scripts/init-private-site.sh --in-place --name "<站点名>" \
+  --base / --deploy nginx --web-root /data/www/<目录>
+```
+
+#### 附：常见问题
+
+| 现象 | 原因与解决 |
+| --- | --- |
+| `git remote -v` 还显示 GitHub 地址 | 用了 `--in-place` 却漏了 `--reset-git`；加了重跑，或手动 `git remote remove origin` |
+| `git log` 里有模板的提交记录 | 同上，历史没清；`--reset-git` 才会重建 `.git` |
+| 想留几篇示例文档参考写法 | 加 `--keep-samples`（保留 Markdown / Mermaid 示例页） |
+| 不想让脚本新建 `main` 分支 | 无需处理；想要别的分支名 `git branch -m <分支名>` 即可 |
 
 ## 本地开发命令
 
@@ -355,8 +478,9 @@ pnpm docs:preview   # 预览构建产物：http://localhost:4173/
 
 ## 上线说明
 
-> 本节针对方式一/方式二（GitHub Pages）。方式三生成的私有项目不用 GitHub，部署看它自带的
-> `deploy/`（nginx 配置或 Dockerfile）与 `scripts/deploy.sh`。
+> 本节针对方式一/方式二（GitHub Pages）。方式三、方式四都不用 GitHub：方式三看它自带的
+> `deploy/`（nginx 配置或 Dockerfile）与 `scripts/deploy.sh`；方式四默认不带部署文件，
+> 需要时按「方式四 → 以后想接仓库 / 想部署了」补上。
 
 - 触发条件：推送到 `main` 分支，或在 Actions 页手动 `Run workflow`。
 - 权限：`contents: read`、`pages: write`、`id-token: write`（缺一个都会失败，已在 workflow 里写好）。

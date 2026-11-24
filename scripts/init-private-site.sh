@@ -58,8 +58,10 @@ usage() {
   --base <前缀>       base 路径，默认 '/'（部署在域名根目录）；子路径写 /hcp-notes/
 
 仓库：
-  --repo <地址>       关联的私有仓库地址（Codeup/GitLab 均可），会写成 origin
-  --reset-git         就地改造时清空 git 历史并重新 init（默认保留历史）
+  --repo <地址>       可选。关联的私有仓库地址（Codeup/GitLab 均可），会写成 origin。
+                      不传就不关联任何仓库：--dir 模式下天然没有远端；
+                      --in-place 模式下会沿用克隆来的 origin（GitHub），需要清掉请加 --reset-git
+  --reset-git         可选。就地改造时清空 git 历史并重新 init（默认保留历史与原 remote）
   --keep-github       保留 .github/workflows（默认删除，私有项目用不到）
 
 内容：
@@ -548,7 +550,13 @@ if [[ -n "$REPO_URL" ]]; then
   fi
   ok "origin → $REPO_URL"
 else
-  warn "未指定 --repo，远端保持空（稍后自己 git remote add origin <地址>）"
+  CURRENT_ORIGIN="$(git remote get-url origin 2>/dev/null || true)"
+  if [[ -n "$CURRENT_ORIGIN" ]]; then
+    warn "未指定 --repo：origin 仍指向 $CURRENT_ORIGIN"
+    warn "（想脱离原仓库就加 --repo <新地址>；只想彻底清掉远端与历史，加 --reset-git）"
+  else
+    warn "未指定 --repo：无任何远端（稍后自己 git remote add origin <地址> 即可）"
+  fi
 fi
 
 git add -A >/dev/null 2>&1 || true
