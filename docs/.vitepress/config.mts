@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
+// 中文分词器（同目录 search-tokenize.ts，本地搜索依赖它，不用改）
+import { tokenize } from './search-tokenize'
 
 // =============================================================================
 // 📌 整个模板里【唯一需要你修改的文件】就是这一个
@@ -145,6 +147,16 @@ export default withMermaid(
       search: {
         provider: 'local',
         options: {
+          // 中文分词：MiniSearch 默认按空格/标点切词，中文没有空格会搜不到句中词，
+          // 这里用「汉字双字滑窗」切分（实现在 search-tokenize.ts，无需改动）。
+          miniSearch: {
+            options: { tokenize },
+            searchOptions: {
+              fuzzy: 0.2, // 容错度；纯英文站可改 0 减少误召回
+              prefix: true, // 前缀匹配：输 dock 能中 docker
+              boost: { title: 4, text: 2, titles: 1 } // 标题命中权重更高
+            }
+          },
           translations: {
             button: { buttonText: '搜索文档', buttonAriaLabel: '搜索文档' },
             modal: {
