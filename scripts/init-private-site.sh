@@ -377,9 +377,14 @@ $PROJECT_NAME/
 ## 本地开发（只需要 Docker）
 
 \`\`\`bash
+# 可选：复制配置模板。不改端口/镜像名可以跳过（compose 里每项都有默认值）
+cp docker/.env.example docker/.env
+
 docker compose -f docker/docker-compose.yml up -d
 docker compose -f docker/docker-compose.yml logs -f    # 出现 Local: http://localhost:5173$BASE_PATH 即可访问
 \`\`\`
+
+> \`docker/.env\` 不入库，刚生成的目录里只有 \`.env.example\`；不复制也能启动，端口固定 5173。
 
 本机装了 Node 22 + pnpm 也可以直接：
 

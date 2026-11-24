@@ -111,7 +111,7 @@ export const site = {
 
 ```bash
 cd docker
-cp .env.example .env        # 首次执行；要换端口就改里面的 DEV_PORT（默认 5173）
+cp .env.example .env        # 可选：想改端口/镜像名才需要；不改就跳过（默认 5173）
 docker compose up -d        # 首次会 build 镜像 + 装依赖，约 1~3 分钟
 docker compose logs -f      # 出现 Local: http://localhost:5173/my-notes/ 即成功
 ```
@@ -174,7 +174,7 @@ base: '/vitepress-note-starter/',   // ← 等于 Fork 后的仓库名；仓库�
 
 ```bash
 cd docker
-cp .env.example .env        # 首次执行；端口在 DEV_PORT（默认 5173）
+cp .env.example .env        # 可选：想改端口/镜像名才需要；不改就跳过（默认 5173）
 docker compose up -d
 docker compose logs -f      # 出现 Local: http://localhost:5173/vitepress-note-starter/ 即成功
 ```
@@ -254,9 +254,15 @@ grep -rn "github" --include="*.ts" --include="*.md" . | grep -v node_modules   #
 #### 第 4 步：本地预览
 
 ```bash
+# 可选：复制配置模板。不改端口/镜像名就可以跳过 —— compose 里每项都有默认值
+cp docker/.env.example docker/.env
+
 docker compose -f docker/docker-compose.yml up -d
 docker compose -f docker/docker-compose.yml logs -f    # 出现 Local: http://localhost:5173... 即成功
 ```
+
+> `docker/.env` 是本地文件、不入库（`.gitignore` 里），所以克隆/生成后一定不存在；不复制也能起，
+> 只是端口固定用默认的 `5173`。要换端口、或在同一台机器起多个站点（改 `IMAGE_NAME` / `CONTAINER_NAME`）就复制后改。
 
 #### 第 5 步：首次提交并推送
 
@@ -412,9 +418,14 @@ grep -E "base|title" content/.vitepress/site.ts      # 期望：你刚填的值
 #### 第 3 步：本地先写起来
 
 ```bash
+# 可选：复制配置模板（不改端口/镜像名可跳过，compose 里每项都有默认值）
+cp docker/.env.example docker/.env
+
 docker compose -f docker/docker-compose.yml up -d
 docker compose -f docker/docker-compose.yml logs -f    # 出现 Local: http://localhost:5173/ 即可
 ```
+
+> `docker/.env` 不入库，全新目录里一定没有它；不复制也能正常启动，只是端口固定 `5173`。
 
 #### 以后想接仓库 / 想部署了
 
@@ -449,6 +460,7 @@ bash scripts/init-private-site.sh --in-place --name "<站点名>" \
 
 | 操作 | 命令 |
 | --- | --- |
+| 首次准备配置（**可选**，不改端口可跳过） | `cd docker && cp .env.example .env` |
 | 启动（首次会 build 镜像 + 安装依赖） | `cd docker && docker compose up -d` |
 | 启动并重建镜像 | `cd docker && docker compose up -d --build` |
 | 看日志 | `docker compose logs -f` |
@@ -456,6 +468,10 @@ bash scripts/init-private-site.sh --in-place --name "<站点名>" \
 | 停止容器 | `docker compose down` |
 | 停止并清空依赖卷 | `docker compose down -v` |
 | 构建产物 | `docker compose run --rm site sh -c "pnpm install && pnpm build"` |
+
+> `docker/.env` 不入库（`.gitignore` 里），所以新克隆/新生成的目录里只有 `.env.example`。
+> **不复制也能启动** —— `docker-compose.yml` 里 `DEV_PORT`、`IMAGE_NAME`、`CONTAINER_NAME`、
+> `PNPM_VERSION`、`NPM_REGISTRY` 全部带 `${VAR:-默认值}`，缺 `.env` 时用默认值（端口 5173）。
 
 不想 `cd` 的话，也可以在仓库根目录统一加 `-f`：
 
