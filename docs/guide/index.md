@@ -12,7 +12,8 @@
 .
 ├── docs/                        # 站点内容（你的笔记都放这里）
 │   ├── .vitepress/
-│   │   ├── config.mts           # 唯一需要修改的配置文件
+│   │   ├── site.ts              # ★ 唯一需要修改的文件（标题 / base / 导航 / 侧边栏）
+│   │   ├── config.mts           # 框架配置：搜索、Mermaid、中文文案（不用动）
 │   │   └── theme/index.ts       # 自定义主题入口（可扩展）
 │   ├── public/                  # 静态资源，按 /文件名 引用
 │   ├── index.md                 # 首页
@@ -22,7 +23,9 @@
 │   ├── Dockerfile               # node22 + pnpm，不含 VitePress
 │   ├── docker-compose.yml       # 挂载 ../ 到 /app
 │   └── .env.example             # 复制为 .env 后生效
-├── .github/workflows/deploy.yml # 推送 main 自动部署 Pages
+├── scripts/
+│   └── init-private-site.sh     # 一键生成私有项目（剥离 GitHub、生成部署文件）
+├── .github/workflows/deploy.yml # 推送 main 自动部署 Pages（私有项目里会被脚本删掉）
 ├── package.json                 # 脚本与依赖
 └── README.md
 ```
@@ -42,7 +45,7 @@ docker compose logs -f
 ```
 
 ::: tip 地址栏里的 /vitepress-note-starter/ 是正常的
-本地访问根路径会 302 跳到 `config.mts` 里 `BASE` 指定的前缀（默认 `/vitepress-note-starter/`），
+本地访问根路径会 302 跳到 `site.ts` 里 `base` 指定的前缀（默认 `/vitepress-note-starter/`），
 这样本地预览和线上 GitHub Pages 的路径完全一致，避免「本地正常、上线后样式丢失」这类问题。
 :::
 
@@ -69,7 +72,7 @@ docker compose down
    ```
 
 3. 正文直接用 Markdown 写；
-4. 在 `docs/.vitepress/config.mts` 的 `sidebar` 里为它加一行 `{ text: '我的第一篇笔记', link: '/notes/my-first-note' }`；
+4. 在 `docs/.vitepress/site.ts` 的 `sidebar` 里为它加一行 `{ text: '我的第一篇笔记', link: '/notes/my-first-note' }`；
 5. 保存即热更新，浏览器会自动刷新。
 
 ## 不想用 Docker 的话
@@ -84,5 +87,19 @@ pnpm docs:dev
 ::: tip --host 0.0.0.0 已经内置
 `package.json` 里的 `docs:dev` 脚本就是 `vitepress dev docs --host 0.0.0.0`，所以容器外一定能访问到。
 :::
+
+## 搬进自己的私有项目（Codeup / GitLab / 内网）
+
+不想用 GitHub Pages、也不想手工删改模板，直接跑：
+
+```bash
+bash scripts/init-private-site.sh --dir ../hcp-notes \
+     --name "HCP 业务文档" --base / \
+     --deploy nginx --repo git@codeup.aliyun.com:mygroup/hcp-notes.git
+```
+
+它会复制一份干净项目、删掉 `.github/`、生成填好的 `site.ts`、换成空白文档骨架，
+并按 `--deploy` 附上 `deploy/nginx.conf` + `scripts/deploy.sh`（或 `--deploy docker`
+生成多阶段 Dockerfile）。已经是模板 clone 时改用 `--in-place`。参数见 `--help`。
 
 下一步：[Markdown 写法示例](/guide/markdown) · [Mermaid 图表示例](/guide/mermaid) · [部署上线说明](/guide/deploy) · [GitHub 仓库设置（一次性）](/guide/github-setup)

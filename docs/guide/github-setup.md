@@ -45,13 +45,13 @@ Pages 是在失败之后才开启的话，历史运行仍然是红的；需要**
 2. **Actions → 选中某次运行 → 点 deploy job**：顶部有 `github-pages` environment 链接与 **View deployment** 按钮；
 3. 直接按规则拼地址访问（部署成功后才不是 404）：
 
-| 仓库类型 | 地址 | `config.mts` 里的 `BASE` |
+| 仓库类型 | 地址 | `site.ts` 里的 `base` |
 | --- | --- | --- |
 | 普通仓库 `my-notes` | `https://用户名.github.io/my-notes/` | `'/my-notes/'` |
 | 用户主页仓库 `<用户名>.github.io` | `https://用户名.github.io/` | `'/'` |
 | 绑定自定义域名 | `https://你的域名/` | `'/'` |
 
-> 域名里的用户名是小写；`BASE` 必须和仓库名一致，否则页面能打开但样式全丢，详见[部署上线说明](/guide/deploy)。
+> 域名里的用户名是小写；`base` 必须和仓库名一致，否则页面能打开但样式全丢，详见[部署上线说明](/guide/deploy)。
 
 ## 四、手动触发 / 重跑
 

@@ -16,7 +16,7 @@ docs/notes/
 ```
 
 ::: tip 目录约定
-- 每新增一个目录，可以在 `docs/.vitepress/config.mts` 的 `sidebar` 里加一组；
+- 每新增一个目录，可以在 `docs/.vitepress/site.ts` 的 `sidebar` 里加一组；
 - 不想维护侧边栏，也可以直接不用 sidebar（改成 `sidebar: false` 或删掉该配置），只用导航 + 搜索；
 - `index.md` 是目录首页，访问 `/notes/` 时展示。
 :::
@@ -29,4 +29,4 @@ docs/notes/
 
 - [ ] 删掉这页里的示例内容
 - [ ] 按自己的分类建目录
-- [ ] 把 `config.mts` 里的站点标题、导航改成自己的
+- [ ] 把 `site.ts` 里的站点标题、导航改成自己的

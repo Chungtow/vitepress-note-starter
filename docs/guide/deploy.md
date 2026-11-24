@@ -2,6 +2,19 @@
 
 站点由 `.github/workflows/deploy.yml` 自动构建并发布到 GitHub Pages：**推送到 `main` 分支就自动上线**，不需要本地构建、也不需要提交 `dist`。
 
+:::: tip 不用 GitHub Pages？用私有项目模式
+搬进云效 Codeup / GitLab / 内网服务器时，在模板根目录执行：
+
+```bash
+bash scripts/init-private-site.sh --dir ../hcp-notes --name "HCP 业务文档" \
+     --base / --deploy nginx --repo git@codeup.aliyun.com:mygroup/hcp-notes.git
+```
+
+它会剥离 `.github/`、生成填好的 `site.ts`，并附上 `deploy/nginx.conf` + `scripts/deploy.sh`
+（或 `--deploy docker` 生成多阶段 Dockerfile）。详见仓库根目录 `README.md`。
+::::
+
+
 ::: tip 流水线不用改
 模板已按最新 GitHub Pages Actions 写好（`configure-pages@v5` / `upload-pages-artifact@v3` / `deploy-pages@v4`），
 权限（`contents: read`、`pages: write`、`id-token: write`）和并发（`group: pages`）都配好了。
@@ -9,9 +22,9 @@
 
 ## 一、确认 base 路径
 
-打开 `docs/.vitepress/config.mts`，改 `BASE` 常量：
+打开 `docs/.vitepress/site.ts`，改 `base` 常量：
 
-| 仓库类型 | 仓库名示例 | 访问地址 | `BASE` 写法 |
+| 仓库类型 | 仓库名示例 | 访问地址 | `base` 写法 |
 | --- | --- | --- | --- |
 | 普通仓库 | `my-notes` | `https://用户名.github.io/my-notes/` | `'/my-notes/'` |
 | 用户主页仓库 | `用户名.github.io` | `https://用户名.github.io/` | `'/'` |
@@ -73,7 +86,7 @@ pnpm docs:preview
 ## 五、自定义域名（可选）
 
 1. 在 `docs/public/` 下新增 `CNAME` 文件，内容写你的域名（不带 `https://`）；
-2. 把 `docs/.vitepress/config.mts` 的 `BASE` 改成 `'/'`；
+2. 把 `docs/.vitepress/site.ts` 的 `base` 改成 `'/'`；
 3. 在仓库 **Settings → Pages → Custom domain** 里填同一个域名；
 4. 域名服务商处添加 CNAME 记录指向 `用户名.github.io`。
 
@@ -84,6 +97,6 @@ pnpm docs:preview
 | Actions 里没有运行记录 | Fork 仓库未启用工作流 | Actions 页手动 Enable |
 | `配置 Pages` 步骤失败（`Get Pages site failed`） | Pages 没启用，或 Source 选成了分支模式 | Settings → Pages 选 GitHub Actions 后重跑 |
 | 构建失败 `lockfile` 相关 | 本地改了依赖但没提交 `pnpm-lock.yaml` | 提交 lockfile，或本地执行 `pnpm install` 后再提交 |
-| 页面样式丢失 | `BASE` 与仓库名不一致 | 按上面表格改 `BASE` 后重新推送 |
+| 页面样式丢失 | `base` 与仓库名不一致 | 按上面表格改 `base` 后重新推送 |
 | 部署成功但 404 | 访问地址写错 / 仓库为 Private 且免费计划 | 核对地址；Pages 需公开仓库或升级计划 |
 | 推了但没触发 | 推到了 `master` 而不是 `main` | 切换分支或改默认分支，见 [GitHub 仓库设置](/guide/github-setup) |
