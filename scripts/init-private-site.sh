@@ -165,14 +165,14 @@ if [[ $IN_PLACE -eq 0 ]]; then
   if command -v rsync >/dev/null 2>&1; then
     rsync -a \
       --exclude '.git' --exclude 'node_modules' --exclude '.pnpm-store' \
-      --exclude 'docs/.vitepress/dist' --exclude 'docs/.vitepress/cache' \
+      --exclude 'content/.vitepress/dist' --exclude 'content/.vitepress/cache' \
       --exclude 'private' --exclude 'docker/.env' \
       "$TEMPLATE_DIR/" "$WORK_DIR/"
   else
     warn "没装 rsync，退回 tar 管道复制（已排除依赖与产物）"
     tar -C "$TEMPLATE_DIR" \
         --exclude='./.git' --exclude='./node_modules' --exclude='./.pnpm-store' \
-        --exclude='./docs/.vitepress/dist' --exclude='./docs/.vitepress/cache' \
+        --exclude='./content/.vitepress/dist' --exclude='./content/.vitepress/cache' \
         --exclude='./private' --exclude='./docker/.env' \
         -cf - . | tar -C "$WORK_DIR" -xf -
   fi
@@ -194,7 +194,7 @@ else
 fi
 
 # 模板自带的 GitHub 专属文档页（与站点主题无关，直接删）
-rm -f docs/guide/github-setup.md docs/guide/deploy.md
+rm -f content/guide/github-setup.md content/guide/deploy.md
 
 # ---------------------------------------------------------------------------
 # 3. 生成 site.ts（站点身份，脚本负责填好）
@@ -203,17 +203,17 @@ EXTRA_SIDEBAR=""
 if [[ $KEEP_SAMPLES -eq 1 ]]; then
   EXTRA_SIDEBAR=$',\n          { text: \'Markdown 写法示例\', link: \'/guide/markdown\' },\n          { text: \'Mermaid 图表示例\', link: \'/guide/mermaid\' }'
   # 模板自带的这两页讲的是 GitHub Pages，删掉后把 index 里的残留链接一起去掉
-  sed -i 's# · \[部署上线说明\](/guide/deploy)##g; s# · \[GitHub 仓库设置（一次性）\](/guide/github-setup)##g' docs/guide/index.md || true
-  sed -i '/\/guide\/deploy\|\/guide\/github-setup/d' docs/notes/index.md 2>/dev/null || true
+  sed -i 's# · \[部署上线说明\](/guide/deploy)##g; s# · \[GitHub 仓库设置（一次性）\](/guide/github-setup)##g' content/guide/index.md || true
+  sed -i '/\/guide\/deploy\|\/guide\/github-setup/d' content/notes/index.md 2>/dev/null || true
 else
   # 不保留示例时，把这些示例页删掉（guide/index.md 稍后重写）
-  rm -f docs/guide/markdown.md docs/guide/mermaid.md
-  rm -rf docs/notes
+  rm -f content/guide/markdown.md content/guide/mermaid.md
+  rm -rf content/notes
   EXTRA_SIDEBAR=$',\n          { text: \'写作规范\', link: \'/guide/writing\' }'
 fi
 
-info "生成 docs/.vitepress/site.ts"
-cat > docs/.vitepress/site.ts <<EOF
+info "生成 content/.vitepress/site.ts"
+cat > content/.vitepress/site.ts <<EOF
 /**
  * =============================================================================
  * 站点身份配置 —— 换成你自己的站点，只改这一个文件
@@ -225,7 +225,7 @@ cat > docs/.vitepress/site.ts <<EOF
 import type { DefaultTheme } from 'vitepress'
 
 export const site = {
-  // 访问路径前缀：部署在域名根目录写 '/'；挂在子路径（如 /docs/）写 '/docs/'
+  // 访问路径前缀：部署在域名根目录写 '/'；挂在子路径（如 /notes/）写 '/notes/'
   base: '$BASE_PATH',
 
   lang: 'zh-CN',
@@ -268,8 +268,8 @@ ok "site.ts 已生成（base=$BASE_PATH，标题=$SITE_NAME）"
 # ---------------------------------------------------------------------------
 if [[ $KEEP_SAMPLES -eq 0 ]]; then
   info "生成文档骨架"
-  mkdir -p docs/guide
-  cat > docs/index.md <<EOF
+  mkdir -p content/guide
+  cat > content/index.md <<EOF
 ---
 layout: home
 # 浏览器标签页标题：site.ts 配了 titleTemplate，不写这行会显示成「站点名 | 站点名」
@@ -289,7 +289,7 @@ hero:
 ---
 EOF
 
-  cat > docs/guide/index.md <<EOF
+  cat > content/guide/index.md <<EOF
 # $SITE_NAME
 
 $SITE_DESC。左侧侧边栏按目录分组，右侧是当前页的目录。
@@ -297,7 +297,7 @@ $SITE_DESC。左侧侧边栏按目录分组，右侧是当前页的目录。
 ## 目录约定
 
 \`\`\`text
-docs/
+content/
 ├── index.md          # 首页
 ├── guide/
 │   ├── index.md      # 本页
@@ -307,8 +307,8 @@ docs/
 
 ## 新增一页文档
 
-1. 在 \`docs/guide/\` 下新建 \`xxx.md\`；
-2. 在 \`docs/.vitepress/site.ts\` 的 \`sidebar\` 里加一行
+1. 在 \`content/guide/\` 下新建 \`xxx.md\`；
+2. 在 \`content/.vitepress/site.ts\` 的 \`sidebar\` 里加一行
    \`{ text: '页面标题', link: '/guide/xxx' }\`；
 3. 保存后开发服务器自动热更新，无需重启。
 
@@ -320,7 +320,7 @@ docs/
 - 中文全文搜索：按 \`Ctrl K\`，支持句中词（如搜「侧边栏」）。
 EOF
 
-  cat > docs/guide/writing.md <<'EOF'
+  cat > content/guide/writing.md <<'EOF'
 # 写作规范
 
 > 这一页是给你自己改的：把团队的标题层级、术语、截图要求写进来，
@@ -333,18 +333,18 @@ EOF
 | 一级标题 | 每页只用一次，等于页面标题 |
 | 标题层级 | 从 `##` 开始，最多到 `###`（右侧目录只显示这两级） |
 | 代码块 | 必须标语言，命令给完整可复制的形式 |
-| 截图 | 放 `docs/public/images/`，引用写 `/images/xxx.png` |
+| 截图 | 放 `content/public/images/`，引用写 `/images/xxx.png` |
 | 链接 | 站内页面用 `/guide/xxx` 形式，不要写完整 URL |
 
 ## 提交习惯
 
 ```bash
-git add docs
+git add content
 git commit -m "docs: 补充 XX 流程说明"
 git push
 ```
 EOF
-  ok "文档骨架已生成（docs/index.md、docs/guide/index.md、docs/guide/writing.md）"
+  ok "文档骨架已生成（content/index.md、content/guide/index.md、content/guide/writing.md）"
 fi
 
 # ---------------------------------------------------------------------------
@@ -361,7 +361,7 @@ Markdown 写作 → 保存即热更新 → 构建成纯静态 HTML。
 
 \`\`\`text
 $PROJECT_NAME/
-├── docs/                      # ★ 文档内容全部在这里
+├── content/                   # ★ 文档内容全部在这里
 │   ├── .vitepress/
 │   │   ├── site.ts           # ★ 唯一需要改的配置（标题 / base / 导航 / 侧边栏）
 │   │   ├── config.mts         # 框架配置（搜索、Mermaid、中文文案），不用动
@@ -385,15 +385,15 @@ docker compose -f docker/docker-compose.yml logs -f    # 出现 Local: http://lo
 
 \`\`\`bash
 pnpm install
-pnpm docs:dev      # http://localhost:5173$BASE_PATH
-pnpm docs:build    # 产物在 docs/.vitepress/dist/
-pnpm docs:preview
+pnpm dev      # http://localhost:5173$BASE_PATH
+pnpm build    # 产物在 content/.vitepress/dist/
+pnpm preview
 \`\`\`
 
 ## 新增一页文档
 
-1. 新建 \`docs/guide/xxx.md\`，第一行写 \`# 标题\`；
-2. 到 \`docs/.vitepress/site.ts\` 的 \`sidebar\` 里加 \`{ text: '标题', link: '/guide/xxx' }\`；
+1. 新建 \`content/guide/xxx.md\`，第一行写 \`# 标题\`；
+2. 到 \`content/.vitepress/site.ts\` 的 \`sidebar\` 里加 \`{ text: '标题', link: '/guide/xxx' }\`；
 3. 保存即可，dev 服务器自动热更新。
 
 ## 部署
@@ -401,14 +401,14 @@ pnpm docs:preview
 $(case "$DEPLOY_MODE" in
   nginx) printf '构建并同步到 nginx 目录（目录见 scripts/deploy.sh 里的 WEB_ROOT）：\n\n```bash\nbash scripts/deploy.sh\n```\n\nnginx 配置见 `deploy/nginx.conf`。';;
   docker) printf '容器化部署（构建 + 启动 nginx）：\n\n```bash\ndocker compose -f deploy/docker-compose.yml up -d --build\n```\n\n访问 `http://<服务器IP>:8080`。';;
-  *) printf '构建产物在 `docs/.vitepress/dist/`，整个目录拷到任意静态服务器即可。';;
+  *) printf '构建产物在 `content/.vitepress/dist/`，整个目录拷到任意静态服务器即可。';;
 esac)
 
 ## 注意
 
 - \`site.ts\` 里的 \`base\` 必须与实际访问路径一致（域名根目录写 \`/\`，
   挂在子路径写 \`/子路径/\`），配错会白屏。
-- \`docs/.vitepress/dist/\`、\`node_modules/\` 不要提交（已在 \`.gitignore\` 里）。
+- \`content/.vitepress/dist/\`、\`node_modules/\` 不要提交（已在 \`.gitignore\` 里）。
 - 中文全文搜索已内置（\`Ctrl K\` 可搜句中词），无需额外服务。
 EOF
 ok "README.md 已重写"
@@ -455,13 +455,13 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 WEB_ROOT="${WEB_ROOT:-@@WEB_ROOT@@}"
-SRC="docs/.vitepress/dist"
+SRC="content/.vitepress/dist"
 
 echo "▸ 安装依赖"
 pnpm install --frozen-lockfile
 
 echo "▸ 构建"
-pnpm docs:build
+pnpm build
 
 echo "▸ 同步到 $WEB_ROOT"
 mkdir -p "$WEB_ROOT"
@@ -478,7 +478,7 @@ EOF
     mkdir -p deploy
     cat > deploy/Dockerfile <<'EOF'
 # 多阶段构建：node 里构建 → nginx 里托管（运行时镜像只有静态文件）
-# 构建：docker build -f deploy/Dockerfile -t docs-site:latest .
+# 构建：docker build -f deploy/Dockerfile -t site:latest .
 FROM node:22-bookworm-slim AS build
 ARG NPM_REGISTRY=https://registry.npmmirror.com
 WORKDIR /app
@@ -494,22 +494,22 @@ RUN npm install -g pnpm@10.34.9
 COPY package.json pnpm-lock.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
 COPY . .
-RUN pnpm docs:build
+RUN pnpm build
 
 FROM nginx:1.27-alpine
-COPY --from=build /app/docs/.vitepress/dist /usr/share/nginx/html
+COPY --from=build /app/content/.vitepress/dist /usr/share/nginx/html
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 EOF
     gen_nginx_conf deploy/nginx.conf "/usr/share/nginx/html"
     cat > deploy/docker-compose.yml <<'EOF'
 # 用法（项目根目录）：docker compose -f deploy/docker-compose.yml up -d --build
 services:
-  docs:
+  site:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    image: docs-site:latest
-    container_name: docs-site
+    image: site:latest
+    container_name: site
     ports:
       - "8080:80"
     restart: unless-stopped
@@ -517,7 +517,7 @@ EOF
     ok "deploy/Dockerfile + deploy/nginx.conf + deploy/docker-compose.yml"
     ;;
   none)
-    warn "未生成部署文件（--deploy none）。构建产物在 docs/.vitepress/dist/，自行拷贝即可"
+    warn "未生成部署文件（--deploy none）。构建产物在 content/.vitepress/dist/，自行拷贝即可"
     ;;
 esac
 
@@ -592,7 +592,7 @@ EOF
     ;;
   *)
     cat <<EOF
-  构建产物在 docs/.vitepress/dist/，用 rsync/nginx 自行托管
+  构建产物在 content/.vitepress/dist/，用 rsync/nginx 自行托管
   （想要现成部署文件就重跑脚本并加 --deploy nginx 或 --deploy docker）
 EOF
     ;;
@@ -600,5 +600,5 @@ esac
 
 cat <<EOF
 
-要改站点标题/导航/侧边栏：编辑 docs/.vitepress/site.ts（唯一需要改的文件）
+要改站点标题/导航/侧边栏：编辑 content/.vitepress/site.ts（唯一需要改的文件）
 EOF

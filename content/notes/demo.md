@@ -72,11 +72,11 @@ tags: [mysql, 索引]
 
 ```bash
 # 推送后自动部署，注意看 Actions 日志
-git add docs/notes/demo.md
+git add content/notes/demo.md
 git commit -m "docs: 新增示例笔记"
 git push origin main
 ```
 
 ::: tip 小技巧
-不确定某个写法渲染成什么样时，新建一个 `docs/playground.md` 随便试，试完删掉即可 —— 本地 dev server 是热更新的。
+不确定某个写法渲染成什么样时，新建一个 `content/playground.md` 随便试，试完删掉即可 —— 本地 dev server 是热更新的。
 :::

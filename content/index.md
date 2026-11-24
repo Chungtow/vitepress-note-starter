@@ -22,7 +22,7 @@ hero:
 
 features:
   - title: 只改一个配置文件
-    details: 站点标题、导航、侧边栏全在 docs/.vitepress/site.ts，关键位置都写了中文注释。
+    details: 站点标题、导航、侧边栏全在 content/.vitepress/site.ts，关键位置都写了中文注释。
   - title: 本机只需要 Docker + Git
     details: Node 22 + pnpm 跑在容器里，不用在本机装任何前端环境，环境不会互相污染。
   - title: 推送 main 自动上线

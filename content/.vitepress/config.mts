@@ -26,7 +26,7 @@ export default withMermaid(
     description: site.description,
     base: site.base,
 
-    // 站点图标：放在 docs/public/ 下的文件可以直接用 /xxx 引用
+    // 站点图标：放在 content/public/ 下的文件可以直接用 /xxx 引用
     head: [['link', { rel: 'icon', type: 'image/svg+xml', href: `${site.base}logo.svg` }]],
 
     // 开启「上次更新」：需要完整 git 历史（CI 里已配置 fetch-depth: 0）。
@@ -71,7 +71,7 @@ export default withMermaid(
 
     // Mermaid 图表：全局默认配置，需要时改这里
     mermaid: {
-      // 例：theme: 'dark'，更多配置 https://mermaid.js.org/config/schema-docs/config.html
+      // 例：theme: 'dark'，更多配置 https://mermaid.js.org/config/schema-content/config.html
     },
     mermaidPlugin: {
       class: 'mermaid' // 图表容器的 class，方便自定义样式
@@ -134,7 +134,7 @@ export default withMermaid(
 
       // 页面底部「在仓库上编辑此页」（可选，需要填自己的仓库地址，GitHub / Codeup 都行）
       // editLink: {
-      //   pattern: 'https://codeup.aliyun.com/<组>/<仓库>/blob/main/docs/:path',
+      //   pattern: 'https://codeup.aliyun.com/<组>/<仓库>/blob/main/content/:path',
       //   text: '在 Codeup 上编辑此页'
       // }
     }

@@ -2,16 +2,16 @@
 
 一个可以直接拿来写个人笔记的 VitePress 站点模板：**本地只装 Docker + Git 就能开发，推送到 `main` 自动部署到 GitHub Pages**。
 
-模板本身只保留框架和示例文档，不包含任何私人内容。你只需要改一个配置文件（`docs/.vitepress/site.ts`），然后就可以把 `docs/` 当成自己的笔记本。
+模板本身只保留框架和示例文档，不包含任何私人内容。你只需要改一个配置文件（`content/.vitepress/site.ts`），然后就可以把 `content/` 当成自己的笔记本。
 
 ## 特性
 
-- **只改一个文件**：站点标题、描述、`base` 路径、顶部导航、侧边栏都集中在 `docs/.vitepress/site.ts`，关键位置有中文注释。
+- **只改一个文件**：站点标题、描述、`base` 路径、顶部导航、侧边栏都集中在 `content/.vitepress/site.ts`，关键位置有中文注释。
 - **本机零环境依赖**：Node 22 + pnpm 全部跑在 Docker 容器里，不需要安装 Node、pnpm；镜像只预置运行环境，**不含 VitePress**，站点代码通过 volume 挂载，热更新正常。
 - **一条流水线搞定上线**：`.github/workflows/deploy.yml` 已按最新 GitHub Pages Actions 写好（`configure-pages@v5` + `upload-pages-artifact@v3` + `deploy-pages@v4`），推送即发布，模板使用者不用改流水线。
 - **写作体验完整**：默认开启 VitePress 本地搜索（中文文案已汉化、支持中文句中词）、内置 Mermaid 流程图/时序图、代码块行号、深色模式、Markdown 扩展语法。
 - **一条命令搬进私有项目**：`scripts/init-private-site.sh` 生成一个不含 GitHub 依赖的新项目（剥离 `.github/`、填好配置、附 nginx/Docker 部署文件），适配 Codeup / GitLab / 内网服务器。
-- **目录分工清晰**：`docs/` 是内容区（随便改），`docker/`、`.github/` 是框架文件（正常不用动）。
+- **目录分工清晰**：`content/` 是内容区（随便改），`docker/`、`.github/` 是框架文件（正常不用动）。
 
 ## 目录结构
 
@@ -24,7 +24,7 @@ vitepress-note-starter/
 │   ├── Dockerfile               # node:22 + pnpm，不含站点代码
 │   ├── docker-compose.yml       # 把仓库根目录挂载到 /app
 │   └── .env.example             # 复制为 .env 使用（端口、镜像名、npm 源）
-├── docs/                        # ★ 你的笔记全部放这里
+├── content/                     # ★ 你的笔记全部放这里
 │   ├── .vitepress/
 │   │   ├── site.ts              # ★ 唯一需要修改的文件（标题/base/导航/侧边栏/页脚）
 │   │   ├── config.mts           # 框架配置：搜索、Mermaid、中文文案（不用动）
@@ -45,7 +45,7 @@ vitepress-note-starter/
 │   └── init-private-site.sh     # 一键生成私有项目（剥离 GitHub、生成部署文件）
 ├── .dockerignore
 ├── .gitignore
-├── package.json                 # 脚本 docs:dev / docs:build / docs:preview
+├── package.json                 # 脚本 dev / build / preview
 ├── pnpm-lock.yaml
 ├── LICENSE
 └── README.md
@@ -89,7 +89,7 @@ git clone git@github.com:<你的用户名>/my-notes.git    # ← my-notes 换成
 cd my-notes                                          # ← 同一名字
 ```
 
-#### 第 2 步：改站点身份（只改 `docs/.vitepress/site.ts` 一个文件）
+#### 第 2 步：改站点身份（只改 `content/.vitepress/site.ts` 一个文件）
 
 ```ts
 export const site = {
@@ -164,7 +164,7 @@ git clone git@github.com:<你的用户名>/vitepress-note-starter.git
 cd vitepress-note-starter
 ```
 
-改 `docs/.vitepress/site.ts`（规则同方式一第 2 步）：
+改 `content/.vitepress/site.ts`（规则同方式一第 2 步）：
 
 ```ts
 base: '/vitepress-note-starter/',   // ← 等于 Fork 后的仓库名；仓库名叫 <你的用户名>.github.io 时写 '/'
@@ -198,7 +198,7 @@ curl -I https://<你的用户名>.github.io/vitepress-note-starter/    # ← 换
 全程不经过 GitHub。
 
 脚本具体做的事：复制模板（排除 `.git` / `node_modules` / 构建产物）→ 删除 `.github/` 与讲 Pages 的示例页 →
-生成 `docs/.vitepress/site.ts` → 生成空白文档骨架（首页 + 总览 + 写作规范）与精简版 `README.md` →
+生成 `content/.vitepress/site.ts` → 生成空白文档骨架（首页 + 总览 + 写作规范）与精简版 `README.md` →
 按 `--deploy` 生成部署文件 → `git init -b main` 并把 `origin` 指向你的私有仓库。
 
 #### 前置条件（先确认三件事）
@@ -247,7 +247,7 @@ bash scripts/init-private-site.sh --in-place \
 ```bash
 git remote -v      # 只应出现 codeup 那一行；还看到 github 说明没清干净
 ls scripts deploy  # 应有 init-private-site.sh，deploy/ 下有 Dockerfile、nginx.conf、docker-compose.yml
-grep -E "base|title" docs/.vitepress/site.ts        # base 与 title 应是你刚填的值
+grep -E "base|title" content/.vitepress/site.ts        # base 与 title 应是你刚填的值
 grep -rn "github" --include="*.ts" --include="*.md" . | grep -v node_modules   # 期望无输出
 ```
 
@@ -271,7 +271,7 @@ git push -u origin main      # 第一次必须带 -u，之后 git push 即可
 
 #### 第 6 步：部署（方式 A：Docker，推荐）
 
-项目里已经有了 `deploy/Dockerfile`（多阶段构建：Node 里 `pnpm docs:build` → nginx 托管静态文件）
+项目里已经有了 `deploy/Dockerfile`（多阶段构建：Node 里 `pnpm build` → nginx 托管静态文件）
 和 `deploy/docker-compose.yml`，把项目拷到服务器后一条命令起站：
 
 ```bash
@@ -308,14 +308,14 @@ server {
 2. 拷到服务器并生效（`<服务器用户>` / `<服务器>` 换实际值）：
 
 ```bash
-scp deploy/nginx.conf <服务器用户>@<服务器>:/tmp/docs.conf
-ssh <服务器用户>@<服务器> 'sudo mv /tmp/docs.conf /etc/nginx/conf.d/docs.conf && sudo nginx -t && sudo nginx -s reload'
+scp deploy/nginx.conf <服务器用户>@<服务器>:/tmp/site.conf
+ssh <服务器用户>@<服务器> 'sudo mv /tmp/site.conf /etc/nginx/conf.d/site.conf && sudo nginx -t && sudo nginx -s reload'
 ```
 
 3. 以后每次发版（构建 + 同步一步到位）：
 
 ```bash
-bash scripts/deploy.sh      # pnpm install --frozen-lockfile && pnpm docs:build && rsync 到 WEB_ROOT
+bash scripts/deploy.sh      # pnpm install --frozen-lockfile && pnpm build && rsync 到 WEB_ROOT
 ```
 
 > 想临时换目标目录：`WEB_ROOT=/srv/www/<目录> bash scripts/deploy.sh`。
@@ -406,7 +406,7 @@ cd ../<目录>
 git remote -v                          # 期望：没有任何输出
 git log --oneline 2>/dev/null          # 期望：fatal ... does not have any commits yet
 ls -d .github 2>/dev/null || echo "无 .github"    # 期望：无 .github
-grep -E "base|title" docs/.vitepress/site.ts      # 期望：你刚填的值
+grep -E "base|title" content/.vitepress/site.ts      # 期望：你刚填的值
 ```
 
 #### 第 3 步：本地先写起来
@@ -452,10 +452,10 @@ bash scripts/init-private-site.sh --in-place --name "<站点名>" \
 | 启动（首次会 build 镜像 + 安装依赖） | `cd docker && docker compose up -d` |
 | 启动并重建镜像 | `cd docker && docker compose up -d --build` |
 | 看日志 | `docker compose logs -f` |
-| 进容器执行命令 | `docker compose exec docs sh` |
+| 进容器执行命令 | `docker compose exec site sh` |
 | 停止容器 | `docker compose down` |
 | 停止并清空依赖卷 | `docker compose down -v` |
-| 构建产物 | `docker compose run --rm docs sh -c "pnpm install && pnpm docs:build"` |
+| 构建产物 | `docker compose run --rm site sh -c "pnpm install && pnpm build"` |
 
 不想 `cd` 的话，也可以在仓库根目录统一加 `-f`：
 
@@ -469,9 +469,9 @@ docker compose -f docker/docker-compose.yml down
 
 ```bash
 pnpm install
-pnpm docs:dev       # 开发：http://localhost:5173/
-pnpm docs:build     # 构建：docs/.vitepress/dist/
-pnpm docs:preview   # 预览构建产物：http://localhost:4173/
+pnpm dev       # 开发：http://localhost:5173/
+pnpm build     # 构建：content/.vitepress/dist/
+pnpm preview   # 预览构建产物：http://localhost:4173/
 ```
 
 > `--host 0.0.0.0` 已内置在 `package.json` 的脚本里，容器外一定能访问。
@@ -485,16 +485,16 @@ pnpm docs:preview   # 预览构建产物：http://localhost:4173/
 - 触发条件：推送到 `main` 分支，或在 Actions 页手动 `Run workflow`。
 - 权限：`contents: read`、`pages: write`、`id-token: write`（缺一个都会失败，已在 workflow 里写好）。
 - 并发：`group: pages`，同一时刻只跑一个部署，不会互相覆盖。
-- 产物：`docs/.vitepress/dist` 上传为 Pages artifact，由 `actions/deploy-pages` 发布。
+- 产物：`content/.vitepress/dist` 上传为 Pages artifact，由 `actions/deploy-pages` 发布。
 - 站点地址：**Settings → Pages** 顶部横幅 / Actions 里 deploy job 的 environment 链接 / 按 `https://用户名.github.io/仓库名/` 直接访问。
-- 自定义域名：在 `docs/public/` 放 `CNAME` 文件、把 `base` 改为 `'/'`，再到 Settings → Pages 填域名。
+- 自定义域名：在 `content/public/` 放 `CNAME` 文件、把 `base` 改为 `'/'`，再到 Settings → Pages 填域名。
 
 GitHub 侧只需要做三件事（各一次）：**Settings → Pages 的 Source 选 GitHub Actions**、**默认分支为 main**、**模板所有者勾选 Template repository**。
 
-- 逐条步骤 + 失败原因 + Pages 地址怎么找：`docs/guide/github-setup.md`
-- 部署原理、`base` 路径、自定义域名：`docs/guide/deploy.md`
+- 逐条步骤 + 失败原因 + Pages 地址怎么找：`content/guide/github-setup.md`
+- 部署原理、`base` 路径、自定义域名：`content/guide/deploy.md`
 
 ## 说明
 
-- 本仓库仅包含框架与示例内容，示例文档（`docs/guide/`、`docs/notes/`）可以整目录删掉，换成你自己的笔记。
+- 本仓库仅包含框架与示例内容，示例文档（`content/guide/`、`content/notes/`）可以整目录删掉，换成你自己的笔记。
 - 许可证：[Apache-2.0](./LICENSE)。

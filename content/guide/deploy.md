@@ -22,7 +22,7 @@ bash scripts/init-private-site.sh --dir ../hcp-notes --name "HCP 业务文档" \
 
 ## 一、确认 base 路径
 
-打开 `docs/.vitepress/site.ts`，改 `base` 常量：
+打开 `content/.vitepress/site.ts`，改 `base` 常量：
 
 | 仓库类型 | 仓库名示例 | 访问地址 | `base` 写法 |
 | --- | --- | --- | --- |
@@ -72,21 +72,21 @@ Actions → `Deploy VitePress to GitHub Pages` → **Run workflow**，或对旧�
 
 ```bash
 cd docker
-docker compose run --rm docs sh -c "pnpm install && pnpm docs:build"
-# 构建产物在 docs/.vitepress/dist/（宿主机目录，可直接看）
+docker compose run --rm site sh -c "pnpm install && pnpm build"
+# 构建产物在 content/.vitepress/dist/（宿主机目录，可直接看）
 ```
 
 或者本机有 Node 环境时：
 
 ```bash
-pnpm docs:build
-pnpm docs:preview
+pnpm build
+pnpm preview
 ```
 
 ## 五、自定义域名（可选）
 
-1. 在 `docs/public/` 下新增 `CNAME` 文件，内容写你的域名（不带 `https://`）；
-2. 把 `docs/.vitepress/site.ts` 的 `base` 改成 `'/'`；
+1. 在 `content/public/` 下新增 `CNAME` 文件，内容写你的域名（不带 `https://`）；
+2. 把 `content/.vitepress/site.ts` 的 `base` 改成 `'/'`；
 3. 在仓库 **Settings → Pages → Custom domain** 里填同一个域名；
 4. 域名服务商处添加 CNAME 记录指向 `用户名.github.io`。
 

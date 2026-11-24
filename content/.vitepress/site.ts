@@ -21,7 +21,7 @@ export const site = {
   // 【1】base —— 必须与实际访问路径一致，首尾斜杠都不能少
   // ---------------------------------------------------------------------------
   // · 部署在域名根目录（nginx 直接把站根指到 dist）     → '/'
-  // · 部署在子路径（如 https://xxx.com/hcp-notes/）      → '/hcp-notes/'
+  // · 部署在子路径（如 https://xxx.com/notes/）          → '/notes/'
   // · GitHub Pages 普通仓库（https://用户名.github.io/repo/）→ '/repo/'
   //
   // ⚠️ 配错的典型症状：页面能打开但完全没有样式（白底黑字的裸 HTML），
@@ -36,7 +36,7 @@ export const site = {
   titleTemplate: ':title | 我的笔记', // 子页面标题显示为「页面名 | 我的笔记」
   description: '一个基于 VitePress 的个人笔记站点', // 供搜索引擎/内网检索使用
 
-  // 左上角 logo：文件放在 docs/public/ 下，这里写 /文件名即可
+  // 左上角 logo：文件放在 content/public/ 下，这里写 /文件名即可
   logo: '/logo.svg',
 
   // ---------------------------------------------------------------------------
@@ -55,8 +55,8 @@ export const site = {
   // 【4】左侧侧边栏：按目录前缀分组，写笔记时只需要往下加 item
   //   '/guide/' 表示「所有以 /guide/ 开头的页面都用这一组侧边栏」
   //   注意 link 结尾有无斜杠要和文件名对应：
-  //     /guide/          -> docs/guide/index.md
-  //     /guide/markdown  -> docs/guide/markdown.md
+  //     /guide/          -> content/guide/index.md
+  //     /guide/markdown  -> content/guide/markdown.md
   // ---------------------------------------------------------------------------
   sidebar: {
     '/guide/': [

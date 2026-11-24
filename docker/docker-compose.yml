@@ -11,7 +11,7 @@
 #   docker compose -f docker/docker-compose.yml up -d
 # =============================================================================
 services:
-  docs:
+  site:
     build:
       # context 指向仓库根目录，配合根目录的 .dockerignore 减小构建上下文体积
       # （Dockerfile 自身仍在 docker 目录，符合"容器相关文件收拢在 docker/"的约定）
@@ -27,8 +27,8 @@ services:
     working_dir: /app
 
     # 首次启动先装依赖（node_modules 落在独立命名卷里，不污染宿主目录），
-    # 然后启动 dev server。--host 0.0.0.0 已写在 package.json 的 docs:dev 中。
-    command: sh -c "pnpm install && pnpm docs:dev"
+    # 然后启动 dev server。--host 0.0.0.0 已写在 package.json 的 `dev` 脚本中。
+    command: sh -c "pnpm install && pnpm dev"
 
     ports:
       # 左边是宿主机端口（可用 .env 里的 DEV_PORT 改），右边是容器内固定 5173

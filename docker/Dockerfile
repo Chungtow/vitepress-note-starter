@@ -46,6 +46,6 @@ WORKDIR /app
 # VitePress 默认端口
 EXPOSE 5173
 
-# 默认命令：启动 dev server（带 --host 0.0.0.0，见 package.json 的 docs:dev）
+# 默认命令：启动 dev server（带 --host 0.0.0.0，见 package.json 的 `dev` 脚本）
 # 容器外通过 http://localhost:5173 访问
-CMD ["pnpm", "docs:dev"]
+CMD ["pnpm", "dev"]

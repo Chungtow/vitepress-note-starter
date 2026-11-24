@@ -50,7 +50,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: 构建站点
-        run: pnpm docs:build
+        run: pnpm build
 
       - name: 配置 Pages
         uses: actions/configure-pages@v5
@@ -58,7 +58,7 @@ jobs:
       - name: 上传构建产物
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/.vitepress/dist
+          path: content/.vitepress/dist
 
   deploy:
     needs: build

@@ -40,9 +40,9 @@ sequenceDiagram
     participant V as VitePress
     U->>C: docker compose up -d
     C->>C: pnpm install
-    C->>V: pnpm docs:dev --host 0.0.0.0
+    C->>V: pnpm dev --host 0.0.0.0
     V-->>U: http://localhost:5173
-    U->>V: 修改 docs/xx.md
+    U->>V: 修改 content/xx.md
     V-->>U: 热更新，页面自动刷新
 ```
 

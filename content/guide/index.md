@@ -3,14 +3,14 @@
 本模板把「能长期写下去」所需的最小框架都准备好了：只保留 VitePress 配置、Docker 开发环境、GitHub Pages 流水线和几篇示例文档。
 
 ::: tip 一句话理解
-`docs/` 是**你的内容**（想怎么改就怎么改），`docker/` 和 `.github/` 是**框架**（正常不用动）。
+`content/` 是**你的内容**（想怎么改就怎么改），`docker/` 和 `.github/` 是**框架**（正常不用动）。
 :::
 
 ## 目录结构
 
 ```text
 .
-├── docs/                        # 站点内容（你的笔记都放这里）
+├── content/                     # 站点内容（你的笔记都放这里）
 │   ├── .vitepress/
 │   │   ├── site.ts              # ★ 唯一需要修改的文件（标题 / base / 导航 / 侧边栏）
 │   │   ├── config.mts           # 框架配置：搜索、Mermaid、中文文案（不用动）
@@ -61,7 +61,7 @@ docker compose down
 
 ## 写第一篇笔记
 
-1. 在 `docs/notes/` 下新建文件，例如 `docs/notes/my-first-note.md`；
+1. 在 `content/notes/` 下新建文件，例如 `content/notes/my-first-note.md`；
 2. 文件开头可以写 frontmatter（也可不写）：
 
    ```md
@@ -72,7 +72,7 @@ docker compose down
    ```
 
 3. 正文直接用 Markdown 写；
-4. 在 `docs/.vitepress/site.ts` 的 `sidebar` 里为它加一行 `{ text: '我的第一篇笔记', link: '/notes/my-first-note' }`；
+4. 在 `content/.vitepress/site.ts` 的 `sidebar` 里为它加一行 `{ text: '我的第一篇笔记', link: '/notes/my-first-note' }`；
 5. 保存即热更新，浏览器会自动刷新。
 
 ## 不想用 Docker 的话
@@ -81,11 +81,11 @@ docker compose down
 
 ```bash
 pnpm install
-pnpm docs:dev
+pnpm dev
 ```
 
 ::: tip --host 0.0.0.0 已经内置
-`package.json` 里的 `docs:dev` 脚本就是 `vitepress dev docs --host 0.0.0.0`，所以容器外一定能访问到。
+`package.json` 里的 `dev` 脚本就是 `vitepress dev content --host 0.0.0.0`，所以容器外一定能访问到。
 :::
 
 ## 搬进自己的私有项目（Codeup / GitLab / 内网）

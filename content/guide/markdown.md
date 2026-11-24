@@ -83,7 +83,7 @@ function hello(name) {
 
 ## 图片
 
-图片放在 `docs/public/` 下，用绝对路径引用（会自动拼上 base，部署到子路径也不会 404）：
+图片放在 `content/public/` 下，用绝对路径引用（会自动拼上 base，部署到子路径也不会 404）：
 
 ```md
 ![站点 Logo](/logo.svg)

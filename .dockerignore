@@ -5,8 +5,8 @@ node_modules
 **/node_modules
 
 # 构建产物与缓存
-docs/.vitepress/dist
-docs/.vitepress/cache
+content/.vitepress/dist
+content/.vitepress/cache
 dist
 
 # 版本控制与 CI

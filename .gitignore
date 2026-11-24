@@ -3,8 +3,8 @@ node_modules/
 .pnpm-store/
 
 # VitePress 构建产物与缓存（构建后自动生成，不要提交）
-docs/.vitepress/dist/
-docs/.vitepress/cache/
+content/.vitepress/dist/
+content/.vitepress/cache/
 
 # 本地环境变量（从 .env.example 复制而来，含个人配置，不要提交）
 docker/.env
@@ -12,7 +12,7 @@ docker/.env
 .env.local
 
 # 私密文档区：技术文摘 / 过程纪要 / 开发日记 / 公众号草稿等
-# docs/ 是会被构建并公开的目录，私密内容放这里，整目录不提交
+# content/ 是会被构建并公开的目录，私密内容放这里，整目录不提交
 # （后续若想给它单独做私有 git 仓库，直接在本目录 git init 即可，父仓库看不见）
 private/
 
