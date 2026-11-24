@@ -123,7 +123,8 @@ export default withMermaid(
               { text: '总览与快速开始', link: '/guide/' },
               { text: 'Markdown 写法示例', link: '/guide/markdown' },
               { text: 'Mermaid 图表示例', link: '/guide/mermaid' },
-              { text: '部署上线说明', link: '/guide/deploy' }
+              { text: '部署上线说明', link: '/guide/deploy' },
+              { text: 'GitHub 仓库设置（一次性）', link: '/guide/github-setup' }
             ]
           }
         ],

@@ -85,4 +85,4 @@ pnpm docs:dev
 `package.json` 里的 `docs:dev` 脚本就是 `vitepress dev docs --host 0.0.0.0`，所以容器外一定能访问到。
 :::
 
-下一步：[Markdown 写法示例](/guide/markdown) · [Mermaid 图表示例](/guide/mermaid) · [部署上线说明](/guide/deploy)
+下一步：[Markdown 写法示例](/guide/markdown) · [Mermaid 图表示例](/guide/mermaid) · [部署上线说明](/guide/deploy) · [GitHub 仓库设置（一次性）](/guide/github-setup)

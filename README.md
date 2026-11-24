@@ -33,7 +33,8 @@ vitepress-note-starter/
 │   │   ├── index.md
 │   │   ├── markdown.md
 │   │   ├── mermaid.md
-│   │   └── deploy.md
+│   │   ├── deploy.md            # 部署原理、base 路径、自定义域名
+│   │   └── github-setup.md      # GitHub 侧一次性设置、Pages 地址在哪看
 │   └── notes/                   # 笔记区（示例，可删可改）
 │       ├── index.md
 │       └── demo.md
@@ -192,9 +193,13 @@ pnpm docs:preview   # 预览构建产物：http://localhost:4173/
 - 权限：`contents: read`、`pages: write`、`id-token: write`（缺一个都会失败，已在 workflow 里写好）。
 - 并发：`group: pages`，同一时刻只跑一个部署，不会互相覆盖。
 - 产物：`docs/.vitepress/dist` 上传为 Pages artifact，由 `actions/deploy-pages` 发布。
-- 站点地址：**Settings → Pages** 顶部显示；普通仓库形如 `https://用户名.github.io/仓库名/`。
+- 站点地址：**Settings → Pages** 顶部横幅 / Actions 里 deploy job 的 environment 链接 / 按 `https://用户名.github.io/仓库名/` 直接访问。
 - 自定义域名：在 `docs/public/` 放 `CNAME` 文件、把 `BASE` 改为 `'/'`，再到 Settings → Pages 填域名。
-- 更多细节见文档站里的 `docs/guide/deploy.md`。
+
+GitHub 侧只需要做三件事（各一次）：**Settings → Pages 的 Source 选 GitHub Actions**、**默认分支为 main**、**模板所有者勾选 Template repository**。
+
+- 逐条步骤 + 失败原因 + Pages 地址怎么找：`docs/guide/github-setup.md`
+- 部署原理、`base` 路径、自定义域名：`docs/guide/deploy.md`
 
 ## 说明
 
