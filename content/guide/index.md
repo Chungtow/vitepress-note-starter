@@ -27,16 +27,18 @@
 │   └── init-private-site.sh     # 一键生成私有项目（剥离 GitHub、生成部署文件）
 ├── .github/workflows/deploy.yml # 推送 main 自动部署 Pages（私有项目里会被脚本删掉）
 ├── package.json                 # 脚本与依赖
-└── README.md
+├── assets/logo.svg              # README 顶部的项目图标（纯 SVG）
+├── README.md                    # 英文说明
+└── README.zh-CN.md              # 中文说明
 ```
 
 ## 三步跑起来
 
 ```bash
-# 1. 启动容器（首次会自动 build 镜像并安装依赖，耐心等 1~3 分钟）
+# 1. 启动容器（默认带 --build，首次会自动 build 镜像并安装依赖，耐心等 1~3 分钟）
 cd docker
 cp .env.example .env
-docker compose up -d
+docker compose up -d --build
 
 # 2. 看日志，等到出现 "Local: http://localhost:5173/vitepress-note-starter/" 就成功了
 docker compose logs -f
@@ -54,6 +56,15 @@ docker compose logs -f
 ```bash
 docker compose down
 ```
+
+::: tip `--build` 为什么默认都带着
+`up -d` 只在镜像不存在时才构建。镜像已存在时，改了 `docker/Dockerfile` 或 `.env` 里的
+`PNPM_VERSION` / `NPM_REGISTRY`，`up -d` 会继续沿用旧镜像，改动不生效。加上 `--build`
+就补上了这一步；没有改动时约 1 秒（各层 CACHED、镜像 ID 不变、容器也不重建），代价只出现在
+基础镜像被上游更新时：会全量重建一次（约 25 秒）。
+另外两类改动不靠它：改文档或组件热更新即可生效，改 `package.json` 依赖要
+`docker compose restart site` 重装。
+:::
 
 ::: warning 第一次启动别急着刷新
 首次启动要先拉 `node:22` 基础镜像并 `pnpm install`，日志里出现 `Local: http://localhost:5173/` 之前页面打不开是正常的。

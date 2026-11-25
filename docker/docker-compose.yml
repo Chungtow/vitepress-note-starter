@@ -2,13 +2,18 @@
 # 本地开发容器（只跑 VitePress dev server，镜像里没有 VitePress 本体）
 # -----------------------------------------------------------------------------
 # 使用方式（在本 docker 目录下执行）：
-#   cp .env.example .env      # 首次使用，按需改端口
-#   docker compose up -d      # 启动，首次会自动 build 镜像 + 装依赖
-#   docker compose logs -f    # 看日志（等到出现 Local: http://localhost:5173/ 即成功）
-#   docker compose down       # 停止
+#   cp .env.example .env          # 首次使用，按需改端口
+#   docker compose up -d --build  # 启动（默认带 --build），首次会自动 build 镜像 + 装依赖
+#   docker compose logs -f        # 看日志（等到出现 Local: http://localhost:5173/ 即成功）
+#   docker compose down           # 停止
+#
+# 为什么默认带 --build：镜像已存在时 up -d 不会因为 Dockerfile 或下面 build.args 里的
+# PNPM_VERSION / NPM_REGISTRY 变化而重建，改动静默不生效；--build 补上这一步。无改动时
+# 约 1 秒（各层 CACHED、镜像 ID 不变、容器也不重建），只有基础镜像被上游更新才会全量重建。
+# 详见 README.zh-CN.md 的「为什么启动命令默认都带 --build」。
 #
 # 也可以从仓库根目录执行：
-#   docker compose -f docker/docker-compose.yml up -d
+#   docker compose -f docker/docker-compose.yml up -d --build
 # =============================================================================
 services:
   site:

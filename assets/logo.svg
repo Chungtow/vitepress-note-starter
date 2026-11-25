@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="vitepress-note-starter">
+  <title>vitepress-note-starter</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#42b883" />
+      <stop offset="100%" stop-color="#2c6b60" />
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e6f6ef" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#bg)" />
+  <path d="M34 34a8 8 0 0 1 8-8h40l16 16v52a8 8 0 0 1-8 8H42a8 8 0 0 1-8-8Z" fill="url(#paper)" />
+  <path d="M82 26l16 16H82Z" fill="#b7ddcd" />
+  <rect x="44" y="56" width="36" height="6" rx="3" fill="#42b883" />
+  <rect x="44" y="70" width="30" height="6" rx="3" fill="#9fd0bc" />
+  <rect x="44" y="84" width="22" height="6" rx="3" fill="#9fd0bc" />
+</svg>

@@ -38,7 +38,7 @@ sequenceDiagram
     participant U as 用户
     participant C as Docker 容器
     participant V as VitePress
-    U->>C: docker compose up -d
+    U->>C: docker compose up -d --build
     C->>C: pnpm install
     C->>V: pnpm dev --host 0.0.0.0
     V-->>U: http://localhost:5173

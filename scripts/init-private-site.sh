@@ -380,7 +380,7 @@ $PROJECT_NAME/
 # 可选：复制配置模板。不改端口/镜像名可以跳过（compose 里每项都有默认值）
 cp docker/.env.example docker/.env
 
-docker compose -f docker/docker-compose.yml up -d
+docker compose -f docker/docker-compose.yml up -d --build
 docker compose -f docker/docker-compose.yml logs -f    # 出现 Local: http://localhost:5173$BASE_PATH 即可访问
 \`\`\`
 
@@ -417,6 +417,9 @@ esac)
 - 中文全文搜索已内置（\`Ctrl K\` 可搜句中词），无需额外服务。
 EOF
 ok "README.md 已重写"
+
+# 模板附带的中英文双语 README 在私有项目里没有意义（讲的是模板用法），一并清掉
+rm -f README.zh-CN.md
 
 # ---------------------------------------------------------------------------
 # 5. 部署文件
@@ -575,7 +578,7 @@ $(printf '\033[32m全部完成\033[0m')  项目目录：$WORK_DIR
 
 下一步（三条命令）：
   cd $WORK_DIR
-  docker compose -f docker/docker-compose.yml up -d    # 本地开发，浏览器开 http://localhost:5173$BASE_PATH
+  docker compose -f docker/docker-compose.yml up -d --build   # 本地开发，浏览器开 http://localhost:5173$BASE_PATH
   git commit -m "chore: init $PROJECT_NAME" && git push -u origin main
 
 部署：

@@ -11,7 +11,7 @@ bash scripts/init-private-site.sh --dir ../hcp-notes --name "HCP 业务文档" \
 ```
 
 它会剥离 `.github/`、生成填好的 `site.ts`，并附上 `deploy/nginx.conf` + `scripts/deploy.sh`
-（或 `--deploy docker` 生成多阶段 Dockerfile）。详见仓库根目录 `README.md`。
+（或 `--deploy docker` 生成多阶段 Dockerfile）。详见仓库根目录的 `README.zh-CN.md`。
 ::::
 
 
