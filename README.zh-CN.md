@@ -43,6 +43,9 @@
 
 ```text
 vitepress-note-starter/
+├── .agents/
+│   └── skills/
+│       └── vitepress-doc-import/   # 批量导入已有 Markdown 的 Agent Skill，见「新增文档」
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml           # 推送 main 后构建并发布到 GitHub Pages
@@ -517,6 +520,96 @@ pnpm preview   # 预览构建产物：http://localhost:4173/
 ```
 
 `--host 0.0.0.0` 已经写入 `package.json` 的脚本，容器外一定能访问。
+
+## 新增文档
+
+`content/` 下的页面当然可以手写：新建 `.md`，再到 `content/.vitepress/site.ts` 的 `sidebar` 里加一行。但如果要把一整批已有 Markdown（几十篇、带相对链接、带 `{{ }}` 和 `ARRAY<STRING>` 这类写法）搬进站点，逐篇改链接、逐个修构建错误很费时间，仓库为此内置了一个 Agent Skill：
+
+```text
+.agents/skills/vitepress-doc-import/
+├── SKILL.md                           # 流程、分组与 slug 的判断原则、验收清单
+├── references/vitepress-pitfalls.md   # 踩坑与原理：Vue 编译报错、搜索索引、热更新边界
+└── scripts/
+    ├── import_docs.py                 # 批量导入：复制、内链改写、Vue 语法兼容、逐篇自检
+    └── check_site.py                  # 站点校验：页面与产物齐全、sidebar 链接、死链
+```
+
+在支持 Agent Skill 的编码助手（Claude Code、CodeBuddy 等）里打开本仓库，直接说一句「把 `<源目录>` 下的文档导入文档站，分组叫 `<分组名>`」，助手会读取 `SKILL.md` 按流程执行。不借助助手时按下文手动跑脚本即可，命令都在仓库根目录执行（下文 `<分组名>` 指站内目标目录，例如已有的 `notes`）。
+
+先说分工：**机械转换交给脚本，分组与命名由你决定**。脚本会复制文件、把同批次内部互链改写成新路径、把指向批次外的 `../xxx.md` 降级为纯文本、把 `{{ … }}` 与裸泛型处理成 Vue 能编译的写法，并逐篇自检；它不会替你判断分几组、URL 怎么起、菜单文案写什么。
+
+### 第 1 步：清点源目录
+
+```bash
+find <源目录> -type f -name '*.md' | sort
+for f in <源目录>/*.md; do printf '%-46s | ' "$(basename "$f")"; grep -m1 '^# ' "$f" || echo '!! 无 H1'; done
+grep -rnE '!\[[^]]*\]\(' <源目录>/*.md | head        # 图片不会被自动搬运
+grep -rnE '\]\((\.\./|\./)' <源目录>/*.md | head     # 相对链接会被改写或降级
+```
+
+要记下三件事：篇数、有没有 H1（没有的补 frontmatter `title`）、有没有图片与相对链接。图片需要自己复制到 `content/public/`，并把引用改成 `/img/x.png` 这类站内绝对路径。
+
+### 第 2 步：设计分组与 slug
+
+- 分组按读者的动线排，不按原目录名：先回答「新人从哪进、做完一件事要依次看哪几篇」，再据此排序。
+- 菜单分组控制在 5~8 组，每组 2~7 篇，单篇成组的只留 1~2 组。
+- 文件名一律 ascii kebab-case：`快速上手-操作指南.md` → `getting-started/quickstart.md`。中文与空格会变成 URL 里的 `%E4%B8%AD`、`%20`。
+- 标题取原文 H1，不要拿文件名当标题。
+
+### 第 3 步：写映射，先 --dry-run
+
+映射是一个 JSON：键是源文件名，值是**相对 `--group` 的站内路径**（不要带分组名前缀）。
+
+```bash
+cat > /tmp/doc-import-map.json <<'JSON'
+{
+  "快速上手-操作指南.md": "getting-started/quickstart.md",
+  "常见问题排查.md":      "troubleshooting/faq.md"
+}
+JSON
+
+python3 .agents/skills/vitepress-doc-import/scripts/import_docs.py \
+  --src <源目录> --site-content ./content --group <分组名> \
+  --map /tmp/doc-import-map.json --dry-run
+```
+
+`--dry-run` 逐篇打印转换统计（`vpr` 插值、`gen` 泛型、`tag` 标签、`rlk` 内链改写、`dmt` 降级）和无 H1 提醒，发现会让构建失败的问题时以非 0 退出码报出，全程不写文件。
+
+不想先写映射也可以空跑一次：脚本会按文件名里的 ASCII 片段猜一版建议稿直接打印（纯中文名会退化成 `doc.md`、`doc-2.md`），需要存盘时加 `--suggest-out /tmp/map.suggested.json`。
+
+### 第 4 步：正式导入
+
+去掉 `--dry-run` 重跑同一条命令，文件即落到 `content/<分组名>/...`，并顺手完成链接改写与语法兼容。
+
+### 第 5 步：补总览页与导航
+
+脚本不碰站点配置，这三件事要自己做：
+
+1. 写 `content/<分组名>/index.md`：「我要做什么 → 看哪篇」速查表、分组篇数、必要的阅读须知。
+2. 在 `content/.vitepress/site.ts` 的 `nav` 里加一项 `{ text: '<分组显示名>', link: '/<分组名>/' }`，并在 `sidebar['/<分组名>/']` 里按组列全页面。新增页面不会自动出现在侧边栏。
+3. 首页 `content/index.md` 的 hero 按钮与 `features` 卡片按需指向新分组。
+
+### 第 6 步：构建校验与搜索索引
+
+```bash
+docker compose -f docker/docker-compose.yml exec site sh -c "cd /app && pnpm build"   # 期望 build complete
+
+python3 .agents/skills/vitepress-doc-import/scripts/check_site.py \
+  --site-content ./content --group <分组名> --site-ts ./content/.vitepress/site.ts
+
+rm -rf content/.vitepress/dist        # 产物只在构建期需要，留着会刷 dev 日志
+```
+
+本地搜索索引在 dev server 启动或重启时全量构建，新建 `.md` 不会自动进索引，需要让 VitePress 进程自我重启一次：
+
+```bash
+touch content/.vitepress/site.ts
+docker compose -f docker/docker-compose.yml logs --tail 10 site | grep 'restarting server'
+```
+
+然后刷新浏览器再搜索。索引的 `documentCount` 按小节累加，通常是千级，和篇数不成正比。
+
+构建报 `Error parsing JavaScript expression` 或 `Element is missing end tag` 时，先看 `references/vitepress-pitfalls.md` 第 1 节：报错里的行号是生成代码的行号，和 md 行号对不上，按行号去找会白费功夫。
 
 ## 部署说明
 

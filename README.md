@@ -43,6 +43,9 @@ Publishing defaults to GitHub Pages: once you push to `main`, GitHub Actions bui
 
 ```text
 vitepress-note-starter/
+├── .agents/
+│   └── skills/
+│       └── vitepress-doc-import/   # agent skill for importing existing Markdown, see "Adding documents"
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml           # push to main, then build and publish to GitHub Pages
@@ -517,6 +520,96 @@ pnpm preview   # preview the build: http://localhost:4173/
 ```
 
 `--host 0.0.0.0` is already part of the `package.json` scripts, so the site is reachable from outside the container.
+
+## Adding documents
+
+Pages under `content/` can of course be written by hand: create a `.md` file and add one line to the `sidebar` in `content/.vitepress/site.ts`. But importing an existing batch of Markdown (dozens of files, relative links, `{{ }}` expressions and `ARRAY<STRING>`-style text) means rewriting links file by file and chasing build errors, so the repository ships an agent skill for that job:
+
+```text
+.agents/skills/vitepress-doc-import/
+├── SKILL.md                           # workflow, grouping and slug rules, acceptance checklist
+├── references/vitepress-pitfalls.md   # pitfalls and internals: Vue compile errors, search index, hot reload
+└── scripts/
+    ├── import_docs.py                 # batch import: copy, rewrite links, Vue-safe syntax, per-file checks
+    └── check_site.py                  # site check: pages and build output, sidebar links, dead links
+```
+
+Open this repository in a coding assistant that supports agent skills (Claude Code, CodeBuddy and similar) and say "import the docs under `<src-dir>` into the documentation site as group `<group>`"; the assistant reads `SKILL.md` and follows the workflow. Without an assistant, run the scripts manually as described below. All commands run from the repository root, and `<group>` is the target directory inside the content root, for example the existing `notes`.
+
+The division of labor is deliberate: **mechanical conversion belongs to the scripts, grouping and naming belong to you**. The script copies files, rewrites links between documents in the same batch, demotes `../xxx.md` links that point outside the batch to plain text, turns `{{ … }}` and bare generics into Vue-safe syntax, and checks every file. It does not decide how many groups to create, what a URL should look like, or what the menu label should say.
+
+### Step 1: survey the source directory
+
+```bash
+find <src-dir> -type f -name '*.md' | sort
+for f in <src-dir>/*.md; do printf '%-46s | ' "$(basename "$f")"; grep -m1 '^# ' "$f" || echo '!! no H1'; done
+grep -rnE '!\[[^]]*\]\(' <src-dir>/*.md | head        # images are not moved automatically
+grep -rnE '\]\((\.\./|\./)' <src-dir>/*.md | head     # relative links are rewritten or demoted
+```
+
+Three things are worth recording: the page count, whether every file has an H1 (add a frontmatter `title` when it does not), and whether images or relative links exist. Images must be copied into `content/public/` yourself, with references rewritten to something like `/img/x.png`.
+
+### Step 2: design groups and slugs
+
+- Group by reader flow, not by original directory names: ask which page a newcomer enters through and which pages they read next, then sort accordingly.
+- Keep the navigation to 5-8 groups with 2-7 pages each, and allow at most one or two single-page groups.
+- File names are always ascii kebab-case: `快速上手-操作指南.md` becomes `getting-started/quickstart.md`. Chinese characters and spaces turn into `%E4%B8%AD` and `%20` in URLs.
+- Use the original H1 as the page title, not the file name.
+
+### Step 3: write the map and dry-run it
+
+The map is a JSON object: keys are source file names, values are **paths relative to `--group`** (no group prefix).
+
+```bash
+cat > /tmp/doc-import-map.json <<'JSON'
+{
+  "快速上手-操作指南.md": "getting-started/quickstart.md",
+  "常见问题排查.md":      "troubleshooting/faq.md"
+}
+JSON
+
+python3 .agents/skills/vitepress-doc-import/scripts/import_docs.py \
+  --src <src-dir> --site-content ./content --group <group> \
+  --map /tmp/doc-import-map.json --dry-run
+```
+
+`--dry-run` prints per-file conversion counts (`vpr` interpolations, `gen` generics, `tag` tags, `rlk` rewritten links, `dmt` demoted links) plus a warning for missing H1s, exits non-zero when it finds something that would break the build, and writes nothing.
+
+You can also run it without a map first: the script guesses a draft from the ASCII fragments in the file names and prints it (all-Chinese names degrade to `doc.md`, `doc-2.md`). Add `--suggest-out /tmp/map.suggested.json` to save it.
+
+### Step 4: run the import
+
+Rerun the same command without `--dry-run`; files land under `content/<group>/...` with links rewritten and syntax made Vue-safe.
+
+### Step 5: add an overview page and navigation
+
+The script never touches site configuration, so three things remain:
+
+1. Write `content/<group>/index.md`: a "what I want to do → which page to read" table, the page count per group, and any reading notes.
+2. Add `{ text: '<label>', link: '/<group>/' }` to `nav` in `content/.vitepress/site.ts`, and list every page under `sidebar['/<group>/']`. New pages do not appear in the sidebar on their own.
+3. Point the hero button and `features` cards on `content/index.md` at the new group where it makes sense.
+
+### Step 6: build check and search index
+
+```bash
+docker compose -f docker/docker-compose.yml exec site sh -c "cd /app && pnpm build"   # expect build complete
+
+python3 .agents/skills/vitepress-doc-import/scripts/check_site.py \
+  --site-content ./content --group <group> --site-ts ./content/.vitepress/site.ts
+
+rm -rf content/.vitepress/dist        # build output is only needed during the build; leaving it floods dev logs
+```
+
+The local search index is built in full when the dev server starts or restarts, so a new `.md` file does not enter it automatically. Restart the VitePress process once:
+
+```bash
+touch content/.vitepress/site.ts
+docker compose -f docker/docker-compose.yml logs --tail 10 site | grep 'restarting server'
+```
+
+Then reload the browser and search again. `documentCount` accumulates per heading, so it usually runs into the thousands and does not track the page count.
+
+When a build fails with `Error parsing JavaScript expression` or `Element is missing end tag`, read section 1 of `references/vitepress-pitfalls.md` first: the reported line numbers belong to generated code, not to the Markdown file, so hunting by line number wastes time.
 
 ## Deployment notes
 
